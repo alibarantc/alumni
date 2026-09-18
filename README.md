@@ -1,6 +1,5 @@
-GitHub'daki `README.md` dosyanı düzenleme (kalem) modunda açıp, aşağıdaki kod bloğunun sağ üst köşesindeki kopyala butonuna basarak tüm içeriği doğrudan yapıştırabilirsin. Bu sayede tüm tablolar, ikonlar ve başlık formatları GitHub'da birebir aynı görünecektir.
 
-```markdown
+``alumni
 # Konekto - University Communication and Alumni Tracking Platform (Backend API)
 
 ## 🏛️ Architecture and Design Decisions
