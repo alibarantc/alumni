@@ -7,6 +7,17 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configure CORS for Client-Server communication (as shown on whiteboard)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -17,6 +28,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowAll");
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseHttpsRedirection();
@@ -76,6 +88,44 @@ app.MapDelete("/api/users/{id}", (int id) =>
     return Results.NoContent();
 });
 
+// ALUMNI Endpoints (From the Presentation Slide)
+var alumniList = new List<Alumni>();
+int nextAlumniId = 1;
+
+app.MapPost("/api/alumni", (AlumniDto dto) => 
+{
+    var alumni = new Alumni { Id = nextAlumniId++, Name = dto.Name, GraduationYear = dto.GraduationYear };
+    alumniList.Add(alumni);
+    return Results.Created($"/api/alumni/{alumni.Id}", alumni);
+});
+
+app.MapGet("/api/alumni", () => Results.Ok(alumniList));
+
+app.MapGet("/api/alumni/{id}", (int id) => 
+{
+    var alumni = Enumerable.FirstOrDefault(alumniList, a => a.Id == id);
+    return alumni is not null ? Results.Ok(alumni) : Results.NotFound();
+});
+
+app.MapPut("/api/alumni/{id}", (int id, AlumniDto dto) => 
+{
+    var alumni = Enumerable.FirstOrDefault(alumniList, a => a.Id == id);
+    if (alumni is null) return Results.NotFound();
+    
+    alumni.Name = dto.Name;
+    alumni.GraduationYear = dto.GraduationYear;
+    return Results.Ok(alumni);
+});
+
+app.MapDelete("/api/alumni/{id}", (int id) => 
+{
+    var alumni = Enumerable.FirstOrDefault(alumniList, a => a.Id == id);
+    if (alumni is null) return Results.NotFound();
+    
+    alumniList.Remove(alumni);
+    return Results.NoContent();
+});
+
 app.Run();
 
 // Models
@@ -87,6 +137,19 @@ public class User
 }
 
 public class UserDto 
+{
+    public string Name { get; set; } = string.Empty;
+    public int GraduationYear { get; set; }
+}
+
+public class Alumni
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int GraduationYear { get; set; }
+}
+
+public class AlumniDto
 {
     public string Name { get; set; } = string.Empty;
     public int GraduationYear { get; set; }
