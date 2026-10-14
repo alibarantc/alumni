@@ -100,7 +100,7 @@ app.MapPost("/api/alumni", (AlumniDto dto) =>
 });
 
 app.MapGet("/api/alumni", () => Results.Ok(alumniList));
-
+    
 app.MapGet("/api/alumni/{id}", (int id) => 
 {
     var alumni = Enumerable.FirstOrDefault(alumniList, a => a.Id == id);
