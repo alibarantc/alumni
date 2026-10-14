@@ -212,3 +212,4 @@ volumes:
 1. **Initial Migration:** Managed via Entity Framework Core tooling (`dotnet ef migrations add InitialCreate`).
 2. **Data Seeding:** Default departments and initial mock alumni cohorts (for SIS baseline) seeded via `OnModelCreating()` in `KonektoDbContext`.
 3. **Rollback Safety:** All migrations must implement idempotent `Down()` methods to guarantee clean schema rollbacks if required.
+

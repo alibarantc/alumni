@@ -1,0 +1,42 @@
+services:
+  # ==========================================
+  # 1. Konekto Backend API Service
+  # ==========================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: konekto_api
+    ports:
+      - "5100:8080"
+      - "3000:8080" # Supporting slide demo port
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=KonektoDb;User Id=sa;Password=Your_strong_password123!;TrustServerCertificate=True;
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # ==========================================
+  # 2. Database Service (MS SQL Server)
+  # ==========================================
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: konekto_db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Your_strong_password123!
+    ports:
+      - "1433:1433"
+    volumes:
+      # Data Persistence: Solves "The Forgetting Test" by persisting DB files across down/up
+      - mssql_data:/var/opt/mssql/data
+    restart: unless-stopped
+
+# ==========================================
+# 3. Persistent Volumes
+# ==========================================
+# Named volume guarantees data survives `docker compose down` and `docker compose up`
+volumes:
+  mssql_data:
+    driver: local
