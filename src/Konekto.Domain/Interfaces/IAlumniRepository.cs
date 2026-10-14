@@ -10,3 +10,4 @@ public interface IAlumniRepository
     Task<bool> UpdateAsync(Alumni alumni);
     Task<bool> DeleteAsync(int id);
 }
+

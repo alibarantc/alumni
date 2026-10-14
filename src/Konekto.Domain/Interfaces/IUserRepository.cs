@@ -10,3 +10,4 @@ public interface IUserRepository
     Task<bool> UpdateAsync(User user);
     Task<bool> DeleteAsync(int id);
 }
+
