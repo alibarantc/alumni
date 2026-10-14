@@ -8,11 +8,12 @@ services:
       dockerfile: Dockerfile
     container_name: konekto_api
     ports:
-      - "5100:8080"
+      - "${PORT:-5100}:8080"
       - "3000:8080" # Supporting slide demo port
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=db;Database=KonektoDb;User Id=sa;Password=Your_strong_password123!;TrustServerCertificate=True;
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ConnectionStrings__DefaultConnection=Server=${DB_HOST:-db};Database=${DB_NAME:-KonektoDb};User Id=${DB_USER:-sa};Password=${DB_PASSWORD:-Your_strong_password123!};TrustServerCertificate=True;
+      - Jwt__Secret=${JWT_SECRET:-super_secret_konekto_alumni_jwt_key_2026_secure_minimum_32_chars!}
     depends_on:
       - db
     restart: unless-stopped
@@ -24,10 +25,10 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: konekto_db
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=Your_strong_password123!
+      - ACCEPT_EULA=${ACCEPT_EULA:-Y}
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD:-Your_strong_password123!}
     ports:
-      - "1433:1433"
+      - "${DB_PORT:-1433}:1433"
     volumes:
       # Data Persistence: Solves "The Forgetting Test" by persisting DB files across down/up
       - mssql_data:/var/opt/mssql/data
