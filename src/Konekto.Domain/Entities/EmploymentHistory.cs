@@ -11,3 +11,4 @@ public class EmploymentHistory
     public DateOnly? EndDate { get; set; }
     public bool IsCurrent { get; set; } = false;
 }
+

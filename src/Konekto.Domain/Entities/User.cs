@@ -15,3 +15,4 @@ public class User
     public Alumni? Alumni { get; set; }
     public ICollection<JobPosting> JobPostings { get; set; } = new List<JobPosting>();
 }
+

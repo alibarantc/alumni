@@ -21,3 +21,4 @@ public class Alumni
 
     public ICollection<EmploymentHistory> EmploymentHistories { get; set; } = new List<EmploymentHistory>();
 }
+

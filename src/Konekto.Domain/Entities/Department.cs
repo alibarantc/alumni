@@ -10,3 +10,4 @@ public class Department
     // Navigation properties
     public ICollection<Alumni> Alumni { get; set; } = new List<Alumni>();
 }
+

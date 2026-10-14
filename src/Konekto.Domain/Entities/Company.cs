@@ -11,3 +11,4 @@ public class Company
     // Navigation
     public ICollection<JobPosting> JobPostings { get; set; } = new List<JobPosting>();
 }
+

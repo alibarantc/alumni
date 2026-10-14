@@ -17,3 +17,4 @@ public class JobPosting
     public int? PostedByUserId { get; set; }
     public User? PostedByUser { get; set; }
 }
+

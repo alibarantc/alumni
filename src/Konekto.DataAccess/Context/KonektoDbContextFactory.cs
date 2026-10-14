@@ -13,3 +13,4 @@ public class KonektoDbContextFactory : IDesignTimeDbContextFactory<KonektoDbCont
         return new KonektoDbContext(optionsBuilder.Options);
     }
 }
+

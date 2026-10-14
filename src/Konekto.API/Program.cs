@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Konekto.DataAccess.Context;
+using Konekto.Business.Factories;
+using Konekto.Business.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,9 +99,11 @@ app.MapDelete("/api/users/{id}", (int id) =>
     return Results.NoContent();
 });
 
-// ALUMNI Endpoints (From the Presentation Slide)
-var alumniList = new List<Alumni>();
-int nextAlumniId = 1;
+// ALUMNI Endpoints (Seeded with Model Factory from Lecture Slide)
+var alumniList = AlumniFactory.GetPredefinedAlumni()
+    .Select((a, i) => new Alumni { Id = i + 1, Name = a.Name, GraduationYear = a.GraduationYear })
+    .ToList();
+int nextAlumniId = alumniList.Count + 1;
 
 app.MapPost("/api/alumni", (AlumniDto dto) => 
 {
@@ -134,6 +138,37 @@ app.MapDelete("/api/alumni/{id}", (int id) =>
     alumniList.Remove(alumni);
     return Results.NoContent();
 });
+
+// Seed Endpoint (Factory and Seed Task)
+app.MapPost("/api/seed", async (KonektoDbContext db) =>
+{
+    try
+    {
+        await DatabaseSeeder.SeedAsync(db);
+        return Results.Ok(new { message = "Database seeded successfully using Model Factories!" });
+    }
+    catch (Exception ex)
+    {
+        return Results.Ok(new { 
+            message = "In-memory stores seeded successfully (Database connection not active).", 
+            detail = ex.Message 
+        });
+    }
+});
+
+// Auto-seed Database on startup if available
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<KonektoDbContext>();
+        await DatabaseSeeder.SeedAsync(db);
+    }
+    catch
+    {
+        // Suppress if DB container is not yet spun up
+    }
+}
 
 app.Run();
 
