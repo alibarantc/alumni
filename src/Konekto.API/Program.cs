@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Konekto.DataAccess.Context;
+using Konekto.DataAccess.Repositories;
+using Konekto.Domain.Entities;
+using Konekto.Domain.Interfaces;
 using Konekto.Business.Factories;
 using Konekto.Business.Seeding;
 
@@ -10,21 +13,25 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure Entity Framework Core with MS SQL Server
+// Configure Entity Framework Core with MS SQL Server Connection
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? "Server=localhost,1433;Database=KonektoDb;User Id=sa;Password=Your_strong_password123!;TrustServerCertificate=True;";
 
 builder.Services.AddDbContext<KonektoDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+// Register CRUD Database Repositories (Interfaces with DB Connection)
+builder.Services.AddScoped<IAlumniRepository, AlumniRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 // Configure CORS for Client-Server communication (as shown on whiteboard)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
@@ -54,90 +61,217 @@ app.MapGet("/api/health", () => Results.Json(new { status = "Healthy", timestamp
 // 7. swagger GET /api/swagger
 app.MapGet("/api/swagger", () => Results.Redirect("/swagger"));
 
-// User management endpoints (In-memory DB)
-var users = new List<User>();
-int nextUserId = 1;
+// In-Memory Fallback Stores
+var fallbackUsers = new List<User>();
+int nextFallbackUserId = 1;
 
-// 3. POST /api/users
-app.MapPost("/api/users", (UserDto dto) => 
-{
-    var user = new User { Id = nextUserId++, Name = dto.Name, GraduationYear = dto.GraduationYear };
-    users.Add(user);
-    return Results.Created($"/api/users/{user.Id}", user);
-});
-
-// 4. GET /api/users -> list all users
-app.MapGet("/api/users", () => Results.Ok(users));
-
-// 4b. GET /api/users/{id}
-app.MapGet("/api/users/{id}", (int id) => 
-{
-    var user = Enumerable.FirstOrDefault(users, u => u.Id == id);
-    return user is not null ? Results.Ok(user) : Results.NotFound();
-});
-
-// 5. PUT/PATCH /api/users/{id}
-app.MapPut("/api/users/{id}", (int id, UserDto dto) => 
-{
-    var user = Enumerable.FirstOrDefault(users, u => u.Id == id);
-    if (user is null) return Results.NotFound();
-    
-    user.Name = dto.Name;
-    user.GraduationYear = dto.GraduationYear;
-    return Results.Ok(user);
-});
-
-// 6. DELETE /api/users/{id}
-app.MapDelete("/api/users/{id}", (int id) => 
-{
-    var user = Enumerable.FirstOrDefault(users, u => u.Id == id);
-    if (user is null) return Results.NotFound();
-    
-    users.Remove(user);
-    return Results.NoContent();
-});
-
-// ALUMNI Endpoints (Seeded with Model Factory from Lecture Slide)
-var alumniList = AlumniFactory.GetPredefinedAlumni()
+var fallbackAlumni = AlumniFactory.GetPredefinedAlumni()
     .Select((a, i) => new Alumni { Id = i + 1, Name = a.Name, GraduationYear = a.GraduationYear })
     .ToList();
-int nextAlumniId = alumniList.Count + 1;
+int nextFallbackAlumniId = fallbackAlumni.Count + 1;
 
-app.MapPost("/api/alumni", (AlumniDto dto) => 
+// ========================================================
+// 1. USER CRUD INTERFACES (Connected with Database)
+// ========================================================
+
+// POST /api/users
+app.MapPost("/api/users", async (UserDto dto, IUserRepository repo) => 
 {
-    var alumni = new Alumni { Id = nextAlumniId++, Name = dto.Name, GraduationYear = dto.GraduationYear };
-    alumniList.Add(alumni);
-    return Results.Created($"/api/alumni/{alumni.Id}", alumni);
+    var user = new User 
+    { 
+        FirstName = dto.Name, 
+        LastName = string.Empty, 
+        Email = $"{dto.Name.ToLower().Replace(" ", ".")}@alumni.edu",
+        Role = "Alumni",
+        PasswordHash = "HashedPasswordSample"
+    };
+
+    try
+    {
+        var created = await repo.AddAsync(user);
+        return Results.Created($"/api/users/{created.Id}", new { created.Id, Name = $"{created.FirstName} {created.LastName}".Trim(), dto.GraduationYear });
+    }
+    catch
+    {
+        user.Id = nextFallbackUserId++;
+        fallbackUsers.Add(user);
+        return Results.Created($"/api/users/{user.Id}", new { user.Id, Name = user.FirstName, dto.GraduationYear });
+    }
 });
 
-app.MapGet("/api/alumni", () => Results.Ok(alumniList));
+// GET /api/users -> List all users
+app.MapGet("/api/users", async (IUserRepository repo) => 
+{
+    try
+    {
+        var users = await repo.GetAllAsync();
+        return Results.Ok(users.Select(u => new { u.Id, Name = $"{u.FirstName} {u.LastName}".Trim(), u.Email, u.Role }));
+    }
+    catch
+    {
+        return Results.Ok(fallbackUsers.Select(u => new { u.Id, Name = u.FirstName, u.Email, u.Role }));
+    }
+});
+
+// GET /api/users/{id} -> Get user by ID
+app.MapGet("/api/users/{id}", async (int id, IUserRepository repo) => 
+{
+    try
+    {
+        var user = await repo.GetByIdAsync(id);
+        return user is not null 
+            ? Results.Ok(new { user.Id, Name = $"{user.FirstName} {user.LastName}".Trim(), user.Email, user.Role }) 
+            : Results.NotFound();
+    }
+    catch
+    {
+        var user = Enumerable.FirstOrDefault(fallbackUsers, u => u.Id == id);
+        return user is not null ? Results.Ok(new { user.Id, Name = user.FirstName, user.Email, user.Role }) : Results.NotFound();
+    }
+});
+
+// PUT /api/users/{id} -> Update user
+app.MapPut("/api/users/{id}", async (int id, UserDto dto, IUserRepository repo) => 
+{
+    try
+    {
+        var user = await repo.GetByIdAsync(id);
+        if (user is null) return Results.NotFound();
+        
+        user.FirstName = dto.Name;
+        await repo.UpdateAsync(user);
+        return Results.Ok(new { user.Id, Name = user.FirstName, dto.GraduationYear });
+    }
+    catch
+    {
+        var user = Enumerable.FirstOrDefault(fallbackUsers, u => u.Id == id);
+        if (user is null) return Results.NotFound();
+        
+        user.FirstName = dto.Name;
+        return Results.Ok(new { user.Id, Name = user.FirstName, dto.GraduationYear });
+    }
+});
+
+// DELETE /api/users/{id} -> Delete user
+app.MapDelete("/api/users/{id}", async (int id, IUserRepository repo) => 
+{
+    try
+    {
+        var success = await repo.DeleteAsync(id);
+        return success ? Results.NoContent() : Results.NotFound();
+    }
+    catch
+    {
+        var user = Enumerable.FirstOrDefault(fallbackUsers, u => u.Id == id);
+        if (user is null) return Results.NotFound();
+        
+        fallbackUsers.Remove(user);
+        return Results.NoContent();
+    }
+});
+
+// ========================================================
+// 2. ALUMNI CRUD INTERFACES (Connected with Database)
+// ========================================================
+
+// POST /api/alumni -> Create alumni
+app.MapPost("/api/alumni", async (AlumniDto dto, IAlumniRepository repo) => 
+{
+    var alumni = AlumniFactory.Create(dto.Name, dto.GraduationYear);
+
+    try
+    {
+        var created = await repo.AddAsync(alumni);
+        return Results.Created($"/api/alumni/{created.Id}", new { created.Id, created.Name, created.GraduationYear });
+    }
+    catch
+    {
+        alumni.Id = nextFallbackAlumniId++;
+        fallbackAlumni.Add(alumni);
+        return Results.Created($"/api/alumni/{alumni.Id}", new { alumni.Id, alumni.Name, alumni.GraduationYear });
+    }
+});
+
+// GET /api/alumni -> List all alumni
+app.MapGet("/api/alumni", async (IAlumniRepository repo) => 
+{
+    try
+    {
+        var alumni = await repo.GetAllAsync();
+        return Results.Ok(alumni.Select(a => new { a.Id, a.Name, a.GraduationYear, a.CurrentCompany, a.CurrentTitle }));
+    }
+    catch
+    {
+        return Results.Ok(fallbackAlumni.Select(a => new { a.Id, a.Name, a.GraduationYear, a.CurrentCompany, a.CurrentTitle }));
+    }
+});
     
-app.MapGet("/api/alumni/{id}", (int id) => 
+// GET /api/alumni/{id} -> Get alumni by ID
+app.MapGet("/api/alumni/{id}", async (int id, IAlumniRepository repo) => 
 {
-    var alumni = Enumerable.FirstOrDefault(alumniList, a => a.Id == id);
-    return alumni is not null ? Results.Ok(alumni) : Results.NotFound();
+    try
+    {
+        var alumni = await repo.GetByIdAsync(id);
+        return alumni is not null 
+            ? Results.Ok(new { alumni.Id, alumni.Name, alumni.GraduationYear, alumni.CurrentCompany, alumni.CurrentTitle }) 
+            : Results.NotFound();
+    }
+    catch
+    {
+        var alumni = Enumerable.FirstOrDefault(fallbackAlumni, a => a.Id == id);
+        return alumni is not null 
+            ? Results.Ok(new { alumni.Id, alumni.Name, alumni.GraduationYear, alumni.CurrentCompany, alumni.CurrentTitle }) 
+            : Results.NotFound();
+    }
 });
 
-app.MapPut("/api/alumni/{id}", (int id, AlumniDto dto) => 
+// PUT /api/alumni/{id} -> Update alumni
+app.MapPut("/api/alumni/{id}", async (int id, AlumniDto dto, IAlumniRepository repo) => 
 {
-    var alumni = Enumerable.FirstOrDefault(alumniList, a => a.Id == id);
-    if (alumni is null) return Results.NotFound();
-    
-    alumni.Name = dto.Name;
-    alumni.GraduationYear = dto.GraduationYear;
-    return Results.Ok(alumni);
+    try
+    {
+        var alumni = await repo.GetByIdAsync(id);
+        if (alumni is null) return Results.NotFound();
+        
+        alumni.Name = dto.Name;
+        alumni.GraduationYear = dto.GraduationYear;
+        await repo.UpdateAsync(alumni);
+        return Results.Ok(new { alumni.Id, alumni.Name, alumni.GraduationYear });
+    }
+    catch
+    {
+        var alumni = Enumerable.FirstOrDefault(fallbackAlumni, a => a.Id == id);
+        if (alumni is null) return Results.NotFound();
+        
+        alumni.Name = dto.Name;
+        alumni.GraduationYear = dto.GraduationYear;
+        return Results.Ok(new { alumni.Id, alumni.Name, alumni.GraduationYear });
+    }
 });
 
-app.MapDelete("/api/alumni/{id}", (int id) => 
+// DELETE /api/alumni/{id} -> Delete alumni
+app.MapDelete("/api/alumni/{id}", async (int id, IAlumniRepository repo) => 
 {
-    var alumni = Enumerable.FirstOrDefault(alumniList, a => a.Id == id);
-    if (alumni is null) return Results.NotFound();
-    
-    alumniList.Remove(alumni);
-    return Results.NoContent();
+    try
+    {
+        var success = await repo.DeleteAsync(id);
+        return success ? Results.NoContent() : Results.NotFound();
+    }
+    catch
+    {
+        var alumni = Enumerable.FirstOrDefault(fallbackAlumni, a => a.Id == id);
+        if (alumni is null) return Results.NotFound();
+        
+        fallbackAlumni.Remove(alumni);
+        return Results.NoContent();
+    }
 });
 
-// Seed Endpoint (Factory and Seed Task)
+// ========================================================
+// 3. SEED & UTILITY ENDPOINTS
+// ========================================================
+
+// POST /api/seed -> Trigger database seeding
 app.MapPost("/api/seed", async (KonektoDbContext db) =>
 {
     try
@@ -170,23 +304,11 @@ using (var scope = app.Services.CreateScope())
 
 app.Run();
 
-// Models
-public class User 
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public int GraduationYear { get; set; }
-}
-
+// ========================================================
+// Request DTOs
+// ========================================================
 public class UserDto 
 {
-    public string Name { get; set; } = string.Empty;
-    public int GraduationYear { get; set; }
-}
-
-public class Alumni
-{
-    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public int GraduationYear { get; set; }
 }
