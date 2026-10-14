@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Konekto.Business\Konekto.Business.csproj" />
     <ProjectReference Include="..\Konekto.Domain\Konekto.Domain.csproj" />
+    <ProjectReference Include="..\Konekto.DataAccess\Konekto.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>

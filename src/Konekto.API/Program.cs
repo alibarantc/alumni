@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Konekto.DataAccess.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Configure Entity Framework Core with MS SQL Server
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? "Server=localhost,1433;Database=KonektoDb;User Id=sa;Password=Your_strong_password123!;TrustServerCertificate=True;";
+
+builder.Services.AddDbContext<KonektoDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
 // Configure CORS for Client-Server communication (as shown on whiteboard)
 builder.Services.AddCors(options =>
