@@ -20,5 +20,6 @@ public class Alumni
     public User? User { get; set; }
 
     public ICollection<EmploymentHistory> EmploymentHistories { get; set; } = new List<EmploymentHistory>();
+    public ICollection<Application> Applications { get; set; } = new List<Application>();
 }
 

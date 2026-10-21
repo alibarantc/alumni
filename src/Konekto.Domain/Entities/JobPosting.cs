@@ -16,5 +16,7 @@ public class JobPosting
 
     public int? PostedByUserId { get; set; }
     public User? PostedByUser { get; set; }
+
+    public ICollection<Application> Applications { get; set; } = new List<Application>();
 }
 

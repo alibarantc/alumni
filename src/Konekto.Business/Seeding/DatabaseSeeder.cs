@@ -31,6 +31,14 @@ public static class DatabaseSeeder
             await context.Alumni.AddRangeAsync(alumni);
             await context.SaveChangesAsync();
         }
+
+        // 4. Seed Job Postings
+        if (!await context.JobPostings.AnyAsync())
+        {
+            var jobPostings = JobPostingFactory.GetPredefinedJobPostings();
+            await context.JobPostings.AddRangeAsync(jobPostings);
+            await context.SaveChangesAsync();
+        }
     }
 }
 

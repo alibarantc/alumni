@@ -15,6 +15,7 @@ public class KonektoDbContext : DbContext
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<JobPosting> JobPostings => Set<JobPosting>();
     public DbSet<EmploymentHistory> EmploymentHistories => Set<EmploymentHistory>();
+    public DbSet<Application> Applications => Set<Application>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,6 +67,48 @@ public class KonektoDbContext : DbContext
             new Department { Id = 2, Code = "CENG", Name = "Bilgisayar Mühendisliği", Faculty = "Mühendislik Fakültesi" },
             new Department { Id = 3, Code = "IE", Name = "Endüstri Mühendisliği", Faculty = "Mühendislik Fakültesi" }
         );
+
+        // JobPosting configuration
+        modelBuilder.Entity<JobPosting>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(5000);
+            entity.Property(e => e.EmploymentType).HasMaxLength(50);
+            entity.Property(e => e.Location).HasMaxLength(150);
+
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.JobPostings)
+                  .HasForeignKey(e => e.CompanyId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.PostedByUser)
+                  .WithMany()
+                  .HasForeignKey(e => e.PostedByUserId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            // Composite index for active job feed
+            entity.HasIndex(e => new { e.IsActive, e.CreatedAt })
+                  .HasDatabaseName("IX_JobPostings_IsActive_CreatedAt");
+        });
+
+        // Application configuration
+        modelBuilder.Entity<Application>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(30);
+            entity.Property(e => e.CoverLetter).HasMaxLength(2000);
+
+            entity.HasOne(e => e.JobPosting)
+                  .WithMany(j => j.Applications)
+                  .HasForeignKey(e => e.JobPostingId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Alumni)
+                  .WithMany(a => a.Applications)
+                  .HasForeignKey(e => e.AlumniId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
 

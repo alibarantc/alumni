@@ -35,6 +35,7 @@ erDiagram
     USER ||--o{ JOB_POSTING : "publishes"
     COMPANY ||--o{ JOB_POSTING : "employs for"
     ALUMNI_PROFILE ||--o{ EMPLOYMENT_HISTORY : "career milestones"
+    JOB_POSTING ||--o{ APPLICATION : "receives"
 
     USER {
         int Id PK
@@ -94,6 +95,15 @@ erDiagram
         string Location
         datetime CreatedAt
         bool IsActive
+    }
+
+    APPLICATION {
+        int Id PK
+        int JobPostingId FK
+        int AlumniId FK
+        string CoverLetter
+        string Status
+        datetime AppliedAt
     }
 ```
 
@@ -170,6 +180,18 @@ Facilitates networking, recruitment, and alumni-led job postings for recent grad
 | **`Companies`** | `Id (PK)`, `Name (Unique)`, `Industry`, `Website`, `Location` | Centralized corporate catalog |
 | **`JobPostings`** | `Id (PK)`, `PostedByUserId (FK -> Users)`, `CompanyId (FK -> Companies)`, `Title`, `Description`, `EmploymentType`, `Location`, `CreatedAt`, `IsActive` | Employment opportunities board (`Full-time`, `Internship`, `Remote`) |
 
+### 3.6 `Applications` Table
+Tracks alumni job applications submitted through the platform.
+
+| Column | Data Type (C# / SQL) | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `Id` | `int` / `INT` | `PK`, `IDENTITY(1,1)` | Primary key |
+| `JobPostingId` | `int` / `INT` | `NOT NULL`, `FK(JobPostings.Id)` | The job being applied for |
+| `AlumniId` | `int` / `INT` | `NOT NULL`, `FK(Alumni.Id)` | The applicant (alumni) |
+| `CoverLetter` | `string?` / `NVARCHAR(2000)` | `NULL` | Optional motivation letter |
+| `Status` | `string` / `NVARCHAR(30)` | `NOT NULL`, `DEFAULT 'Pending'` | `Pending`, `Reviewed`, `Accepted`, `Rejected` |
+| `AppliedAt` | `DateTime` / `DATETIME2` | `NOT NULL`, `DEFAULT GETUTCDATE()` | Submission timestamp |
+
 ---
 
 ## 4. Indexing & Query Optimization Strategy
@@ -213,3 +235,21 @@ volumes:
 2. **Data Seeding:** Default departments and initial mock alumni cohorts (for SIS baseline) seeded via `OnModelCreating()` in `KonektoDbContext`.
 3. **Rollback Safety:** All migrations must implement idempotent `Down()` methods to guarantee clean schema rollbacks if required.
 
+
+---
+
+## 7. API Routes
+
+### Direct Routes
+- GET    /api/job-postings
+- GET    /api/job-postings/{id}
+- POST   /api/job-postings
+- PUT    /api/job-postings/{id}
+- DELETE /api/job-postings/{id}
+
+### Nested Routes (Applications)
+- GET    /api/job-postings/{jobPostingId}/applications
+- GET    /api/job-postings/{jobPostingId}/applications/{id}
+- POST   /api/job-postings/{jobPostingId}/applications
+- PUT    /api/job-postings/{jobPostingId}/applications/{id}
+- DELETE /api/job-postings/{jobPostingId}/applications/{id}

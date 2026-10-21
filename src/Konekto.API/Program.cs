@@ -6,6 +6,7 @@ using Konekto.Domain.Entities;
 using Konekto.Domain.Interfaces;
 using Konekto.Business.Factories;
 using Konekto.Business.Seeding;
+using ApplicationEntity = Konekto.Domain.Entities.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -268,6 +269,196 @@ app.MapDelete("/api/alumni/{id}", async (int id, IAlumniRepository repo) =>
 });
 
 // ========================================================
+// 3. JOB POSTINGS CRUD (Connected with Database)
+// ========================================================
+
+// POST /api/job-postings
+app.MapPost("/api/job-postings", async (JobPostingDto dto, KonektoDbContext db) =>
+{
+    var posting = new JobPosting
+    {
+        Title = dto.Title,
+        Description = dto.Description,
+        EmploymentType = dto.EmploymentType,
+        Location = dto.Location,
+        CompanyId = dto.CompanyId,
+        PostedByUserId = dto.PostedByUserId,
+        CreatedAt = DateTime.UtcNow,
+        IsActive = true
+    };
+
+    db.JobPostings.Add(posting);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/job-postings/{posting.Id}", new
+    {
+        posting.Id, posting.Title, posting.Description,
+        posting.EmploymentType, posting.Location,
+        posting.CompanyId, posting.PostedByUserId,
+        posting.CreatedAt, posting.IsActive
+    });
+});
+
+// GET /api/job-postings
+app.MapGet("/api/job-postings", async (KonektoDbContext db) =>
+{
+    var postings = await db.JobPostings
+        .Include(j => j.Company)
+        .Where(j => j.IsActive)
+        .OrderByDescending(j => j.CreatedAt)
+        .Select(j => new
+        {
+            j.Id, j.Title, j.EmploymentType, j.Location,
+            j.CreatedAt, j.IsActive,
+            Company = j.Company == null ? null : new { j.Company.Id, j.Company.Name, j.Company.Industry }
+        })
+        .ToListAsync();
+    return Results.Ok(postings);
+});
+
+// GET /api/job-postings/{id}
+app.MapGet("/api/job-postings/{id}", async (int id, KonektoDbContext db) =>
+{
+    var posting = await db.JobPostings
+        .Include(j => j.Company)
+        .Include(j => j.PostedByUser)
+        .FirstOrDefaultAsync(j => j.Id == id);
+
+    if (posting is null) return Results.NotFound();
+
+    return Results.Ok(new
+    {
+        posting.Id, posting.Title, posting.Description,
+        posting.EmploymentType, posting.Location,
+        posting.CreatedAt, posting.IsActive,
+        Company = posting.Company == null ? null : new { posting.Company.Id, posting.Company.Name, posting.Company.Industry, posting.Company.Location },
+        PostedBy = posting.PostedByUser == null ? null : new { posting.PostedByUser.Id, Name = $"{posting.PostedByUser.FirstName} {posting.PostedByUser.LastName}".Trim() }
+    });
+});
+
+// PUT /api/job-postings/{id}
+app.MapPut("/api/job-postings/{id}", async (int id, JobPostingDto dto, KonektoDbContext db) =>
+{
+    var posting = await db.JobPostings.FindAsync(id);
+    if (posting is null) return Results.NotFound();
+
+    posting.Title = dto.Title;
+    posting.Description = dto.Description;
+    posting.EmploymentType = dto.EmploymentType;
+    posting.Location = dto.Location;
+    posting.CompanyId = dto.CompanyId;
+
+    await db.SaveChangesAsync();
+    return Results.Ok(new { posting.Id, posting.Title, posting.EmploymentType, posting.Location, posting.IsActive });
+});
+
+// DELETE /api/job-postings/{id}
+app.MapDelete("/api/job-postings/{id}", async (int id, KonektoDbContext db) =>
+{
+    var posting = await db.JobPostings.FindAsync(id);
+    if (posting is null) return Results.NotFound();
+
+    posting.IsActive = false; // soft delete
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+});
+
+// ========================================================
+// 4. APPLICATIONS (Nested routes under job-postings)
+// ========================================================
+
+// POST /api/job-postings/{jobPostingId}/applications
+app.MapPost("/api/job-postings/{jobPostingId}/applications", async (int jobPostingId, ApplicationDto dto, KonektoDbContext db) =>
+{
+    var posting = await db.JobPostings.FindAsync(jobPostingId);
+    if (posting is null) return Results.NotFound(new { error = "Job posting not found" });
+
+    var application = new ApplicationEntity
+    {
+        JobPostingId = jobPostingId,
+        AlumniId = dto.AlumniId,
+        CoverLetter = dto.CoverLetter,
+        Status = "Pending",
+        AppliedAt = DateTime.UtcNow
+    };
+
+    db.Applications.Add(application);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/job-postings/{jobPostingId}/applications/{application.Id}", new
+    {
+        application.Id, application.JobPostingId, application.AlumniId,
+        application.Status, application.AppliedAt
+    });
+});
+
+// GET /api/job-postings/{jobPostingId}/applications
+app.MapGet("/api/job-postings/{jobPostingId}/applications", async (int jobPostingId, KonektoDbContext db) =>
+{
+    var exists = await db.JobPostings.AnyAsync(j => j.Id == jobPostingId);
+    if (!exists) return Results.NotFound(new { error = "Job posting not found" });
+
+    var applications = await db.Applications
+        .Include(a => a.Alumni)
+        .Where(a => a.JobPostingId == jobPostingId)
+        .OrderByDescending(a => a.AppliedAt)
+        .Select(a => new
+        {
+            a.Id, a.JobPostingId, a.AlumniId,
+            a.CoverLetter, a.Status, a.AppliedAt,
+            Applicant = a.Alumni == null ? null : new { a.Alumni.Id, a.Alumni.Name }
+        })
+        .ToListAsync();
+
+    return Results.Ok(applications);
+});
+
+// GET /api/job-postings/{jobPostingId}/applications/{id}
+app.MapGet("/api/job-postings/{jobPostingId}/applications/{id}", async (int jobPostingId, int id, KonektoDbContext db) =>
+{
+    var application = await db.Applications
+        .Include(a => a.Alumni)
+        .Include(a => a.JobPosting)
+        .FirstOrDefaultAsync(a => a.Id == id && a.JobPostingId == jobPostingId);
+
+    if (application is null) return Results.NotFound();
+
+    return Results.Ok(new
+    {
+        application.Id, application.JobPostingId, application.AlumniId,
+        application.CoverLetter, application.Status, application.AppliedAt,
+        Applicant = application.Alumni == null ? null : new { application.Alumni.Id, application.Alumni.Name },
+        JobPosting = application.JobPosting == null ? null : new { application.JobPosting.Id, application.JobPosting.Title }
+    });
+});
+
+// PUT /api/job-postings/{jobPostingId}/applications/{id}
+app.MapPut("/api/job-postings/{jobPostingId}/applications/{id}", async (int jobPostingId, int id, ApplicationUpdateDto dto, KonektoDbContext db) =>
+{
+    var application = await db.Applications
+        .FirstOrDefaultAsync(a => a.Id == id && a.JobPostingId == jobPostingId);
+
+    if (application is null) return Results.NotFound();
+
+    application.Status = dto.Status;
+    if (dto.CoverLetter is not null) application.CoverLetter = dto.CoverLetter;
+
+    await db.SaveChangesAsync();
+    return Results.Ok(new { application.Id, application.Status, application.CoverLetter });
+});
+
+// DELETE /api/job-postings/{jobPostingId}/applications/{id}
+app.MapDelete("/api/job-postings/{jobPostingId}/applications/{id}", async (int jobPostingId, int id, KonektoDbContext db) =>
+{
+    var application = await db.Applications
+        .FirstOrDefaultAsync(a => a.Id == id && a.JobPostingId == jobPostingId);
+
+    if (application is null) return Results.NotFound();
+
+    db.Applications.Remove(application);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+});
+
+// ========================================================
 // 3. SEED & UTILITY ENDPOINTS
 // ========================================================
 
@@ -317,4 +508,26 @@ public class AlumniDto
 {
     public string Name { get; set; } = string.Empty;
     public int GraduationYear { get; set; }
+}
+
+public class JobPostingDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string? EmploymentType { get; set; } = "Full-time";
+    public string? Location { get; set; }
+    public int? CompanyId { get; set; }
+    public int? PostedByUserId { get; set; }
+}
+
+public class ApplicationDto
+{
+    public int AlumniId { get; set; }
+    public string? CoverLetter { get; set; }
+}
+
+public class ApplicationUpdateDto
+{
+    public string Status { get; set; } = "Pending";
+    public string? CoverLetter { get; set; }
 }
