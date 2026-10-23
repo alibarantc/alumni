@@ -111,3 +111,4 @@ public class UpdateAlumniRequest
     public string? CurrentCompany { get; set; }
     public string? CurrentTitle { get; set; }
 }
+

@@ -182,3 +182,4 @@ public class ApplicationCreateDto
     public int AlumniId { get; set; }
     public string? CoverLetter { get; set; }
 }
+

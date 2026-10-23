@@ -10,3 +10,4 @@ public class Announcement
     public bool IsActive { get; set; } = true;
     public string Author { get; set; } = "Yönetim";
 }
+

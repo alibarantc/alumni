@@ -75,3 +75,4 @@ public class AnnouncementsController : Controller
         return RedirectToAction(nameof(Index));
     }
 }
+

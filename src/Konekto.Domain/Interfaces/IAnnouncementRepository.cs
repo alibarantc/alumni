@@ -11,3 +11,4 @@ public interface IAnnouncementRepository
     Task UpdateAsync(Announcement announcement);
     Task<bool> DeleteAsync(int id);
 }
+

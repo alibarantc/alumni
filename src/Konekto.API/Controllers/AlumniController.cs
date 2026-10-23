@@ -41,3 +41,4 @@ public class AlumniController : Controller
         return View(alumni);
     }
 }
+
