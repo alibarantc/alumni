@@ -1,0 +1,80 @@
+@model IEnumerable<Announcement>
+@{
+    ViewData["Title"] = "Duyurular";
+    var selectedCat = ViewBag.SelectedCategory as string ?? "Tümü";
+    var categories = new[] { "Tümü", "Genel", "Etkinlik", "Kariyer", "Akademik" };
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-bullhorn text-primary me-2"></i> Duyurular
+        </h2>
+        <p class="text-muted mb-0">Üniversitemiz ve mezunlar topluluğundan güncel duyuru ve haberler</p>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a asp-action="Create" class="btn btn-konekto">
+            <i class="fa-solid fa-plus me-1"></i> Yeni Duyuru Ekle
+        </a>
+    </div>
+</div>
+
+<!-- Kategori Filtresi -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    @foreach (var cat in categories)
+    {
+        var isActive = selectedCat == cat;
+        <a asp-action="Index" asp-route-category="@(cat == "Tümü" ? null : cat)" 
+           class="btn btn-sm @(isActive ? "btn-primary" : "btn-outline-secondary") rounded-pill px-3">
+            @cat
+        </a>
+    }
+</div>
+
+<!-- Duyuru Listesi -->
+<div class="row g-4">
+    @if (!Model.Any())
+    {
+        <div class="col-12">
+            <div class="card p-5 text-center bg-white border rounded-4">
+                <i class="fa-regular fa-folder-open fa-3x text-muted mb-3"></i>
+                <h5 class="fw-bold text-dark">Bu kategoride henüz duyuru bulunmuyor.</h5>
+                <p class="text-muted">Farklı bir kategori seçebilir veya yeni bir duyuru ekleyebilirsiniz.</p>
+                <div class="mt-2">
+                    <a asp-action="Create" class="btn btn-primary btn-sm">İlk Duyuruyu Ekle</a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-custom h-100 p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary-subtle text-primary fw-bold">@item.Category</span>
+                        <small class="text-muted"><i class="fa-regular fa-calendar me-1"></i> @item.CreatedAt.ToString("dd MMM yyyy")</small>
+                    </div>
+                    <h5 class="card-title fw-bold text-dark mb-2">@item.Title</h5>
+                    <p class="card-text text-muted small flex-grow-1">
+                        @(item.Content.Length > 140 ? item.Content.Substring(0, 137) + "..." : item.Content)
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                        <small class="text-secondary">
+                            <i class="fa-regular fa-user me-1"></i> @item.Author
+                        </small>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                Detay
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" onclick="return confirm('Bu duyuruyu silmek istediğinize emin misiniz?');" class="btn btn-sm btn-outline-danger">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

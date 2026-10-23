@@ -37,6 +37,16 @@ erDiagram
     ALUMNI_PROFILE ||--o{ EMPLOYMENT_HISTORY : "career milestones"
     JOB_POSTING ||--o{ APPLICATION : "receives"
 
+    ANNOUNCEMENT {
+        int Id PK
+        string Title
+        string Content
+        string Category
+        string Author
+        datetime CreatedAt
+        bool IsActive
+    }
+
     USER {
         int Id PK
         string Email UK
@@ -191,6 +201,21 @@ Tracks alumni job applications submitted through the platform.
 | `CoverLetter` | `string?` / `NVARCHAR(2000)` | `NULL` | Optional motivation letter |
 | `Status` | `string` / `NVARCHAR(30)` | `NOT NULL`, `DEFAULT 'Pending'` | `Pending`, `Reviewed`, `Accepted`, `Rejected` |
 | `AppliedAt` | `DateTime` / `DATETIME2` | `NOT NULL`, `DEFAULT GETUTCDATE()` | Submission timestamp |
+
+---
+
+### 3.6 `Announcements` Table
+Campus news, events, and career notifications published by administrators and alumni offices.
+
+| Column | Data Type (C# / SQL) | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `Id` | `int` / `INT` | `PK`, `IDENTITY(1,1)` | Primary key |
+| `Title` | `string` / `NVARCHAR(250)` | `NOT NULL` | Announcement headline |
+| `Content` | `string` / `NVARCHAR(4000)` | `NOT NULL` | Full announcement text |
+| `Category` | `string` / `NVARCHAR(50)` | `NOT NULL`, `DEFAULT 'Genel'` | `Genel`, `Etkinlik`, `Kariyer`, `Akademik` |
+| `Author` | `string` / `NVARCHAR(100)` | `NOT NULL`, `DEFAULT 'Yönetim'` | Publishing entity or department |
+| `CreatedAt` | `DateTime` / `DATETIME2` | `NOT NULL`, `DEFAULT GETUTCDATE()` | Creation timestamp |
+| `IsActive` | `bool` / `BIT` | `NOT NULL`, `DEFAULT 1` | Active visibility flag |
 
 ---
 

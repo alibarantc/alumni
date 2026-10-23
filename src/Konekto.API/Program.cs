@@ -11,6 +11,7 @@ using ApplicationEntity = Konekto.Domain.Entities.Application;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -24,6 +25,7 @@ builder.Services.AddDbContext<KonektoDbContext>(options =>
 // Register CRUD Database Repositories (Interfaces with DB Connection)
 builder.Services.AddScoped<IAlumniRepository, AlumniRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
 
 // Configure CORS for Client-Server communication (as shown on whiteboard)
 builder.Services.AddCors(options =>
@@ -46,9 +48,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
-app.UseDefaultFiles();
 app.UseStaticFiles();
+app.UseRouting();
 app.UseHttpsRedirection();
+
+// Map MVC Controllers & API Controllers
+app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // Basic endpoints
 app.MapGet("/hello", () => "Hello, World!");

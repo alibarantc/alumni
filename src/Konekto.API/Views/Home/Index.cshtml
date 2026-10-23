@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "Ana Sayfa";
+    var recentAnnouncements = ViewBag.RecentAnnouncements as List<Announcement> ?? new List<Announcement>();
+}
+
+<!-- Hero Section -->
+<div class="p-5 mb-4 bg-white rounded-4 border shadow-sm">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill mb-3">
+                <i class="fa-solid fa-sparkles me-1"></i> Mezun & Öğrenci İletişim Portalı
+            </span>
+            <h1 class="display-5 fw-bold text-dark mb-3">Konekto Dünyasına Hoş Geldiniz</h1>
+            <p class="lead text-muted mb-4">
+                Üniversitemizin mezunları, öğrencileri ve akademisyenleri arasındaki köprüyü güçlendiriyoruz. 
+                Duyuruları takip edin, mezun ağını keşfedin ve kariyer fırsatlarını yakalayın.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-controller="Announcements" asp-action="Index" class="btn btn-konekto btn-lg px-4">
+                    <i class="fa-solid fa-bullhorn me-2"></i> Tüm Duyurular
+                </a>
+                <a asp-controller="Alumni" asp-action="Index" class="btn btn-outline-dark btn-lg px-4">
+                    <i class="fa-solid fa-users me-2"></i> Mezun Rehberi
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-4 text-center mt-4 mt-lg-0">
+            <div class="p-4 bg-light rounded-4 border">
+                <i class="fa-solid fa-network-wired text-primary fa-4x mb-3"></i>
+                <h5 class="fw-bold">Platform İstatistikleri</h5>
+                <hr />
+                <div class="d-flex justify-content-around mt-3">
+                    <div>
+                        <h3 class="fw-bold text-primary mb-0">@ViewBag.TotalAlumniCount</h3>
+                        <small class="text-muted">Kayıtlı Mezun</small>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold text-success mb-0">@ViewBag.ActiveAnnouncementsCount</h3>
+                        <small class="text-muted">Aktif Duyuru</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Son Duyurular Bölümü -->
+<div class="d-flex justify-content-between align-items-center mb-3 mt-5">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-bell text-warning me-2"></i> Güncel Duyurular
+        </h3>
+        <p class="text-muted mb-0">Üniversitemiz ve mezunlarımızdan en son haberler</p>
+    </div>
+    <a asp-controller="Announcements" asp-action="Index" class="btn btn-outline-primary btn-sm">
+        Tümünü Gör <i class="fa-solid fa-arrow-right ms-1"></i>
+    </a>
+</div>
+
+<div class="row g-4 mb-5">
+    @if (!recentAnnouncements.Any())
+    {
+        <div class="col-12">
+            <div class="alert alert-info">Henüz yayınlanmış bir duyuru bulunmuyor.</div>
+        </div>
+    }
+    else
+    {
+        @foreach (var item in recentAnnouncements)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-custom h-100 p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary-subtle text-primary fw-bold">@item.Category</span>
+                        <small class="text-muted">@item.CreatedAt.ToString("dd.MM.yyyy")</small>
+                    </div>
+                    <h5 class="card-title fw-bold text-dark mb-2">@item.Title</h5>
+                    <p class="card-text text-muted small flex-grow-1">
+                        @(item.Content.Length > 120 ? item.Content.Substring(0, 117) + "..." : item.Content)
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                        <small class="text-secondary">
+                            <i class="fa-regular fa-user me-1"></i> @item.Author
+                        </small>
+                        <a asp-controller="Announcements" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-bold">
+                            Detay <i class="fa-solid fa-chevron-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

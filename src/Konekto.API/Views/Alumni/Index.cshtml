@@ -1,0 +1,90 @@
+@model IEnumerable<Alumni>
+@{
+    ViewData["Title"] = "Mezun Rehberi";
+    var search = ViewBag.SearchTerm as string;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-users text-primary me-2"></i> Mezun Rehberi
+        </h2>
+        <p class="text-muted mb-0">Üniversitemizin başarılı mezunlarını keşfedin ve iletişime geçin</p>
+    </div>
+</div>
+
+<!-- Arama Çubuğu -->
+<div class="card p-4 bg-white border rounded-4 shadow-sm mb-4">
+    <form asp-action="Index" method="get" class="row g-2 align-items-center">
+        <div class="col-md-9">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0">
+                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                </span>
+                <input type="text" name="search" value="@search" class="form-control border-start-0" placeholder="Mezun adı, şirket veya pozisyona göre ara..." />
+            </div>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-konekto w-100">Ara</button>
+            @if (!string.IsNullOrWhiteSpace(search))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">Temizle</a>
+            }
+        </div>
+    </form>
+</div>
+
+<!-- Mezun Kartları -->
+<div class="row g-4">
+    @if (!Model.Any())
+    {
+        <div class="col-12">
+            <div class="alert alert-light border p-4 text-center">
+                <i class="fa-solid fa-user-slash text-muted fa-2x mb-2"></i>
+                <h6 class="fw-bold">Aranan kriterlere uygun mezun bulunamadı.</h6>
+            </div>
+        </div>
+    }
+    else
+    {
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-custom h-100 p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                            @(string.IsNullOrWhiteSpace(item.Name) ? "M" : item.Name.Substring(0, 1))
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">@item.Name</h5>
+                            <span class="badge bg-secondary-subtle text-secondary small">
+                                <i class="fa-solid fa-graduation-cap me-1"></i> @item.GraduationYear Mezunu
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 text-muted small">
+                        <div class="mb-1">
+                            <i class="fa-solid fa-briefcase text-secondary me-2"></i>
+                            @(string.IsNullOrWhiteSpace(item.CurrentTitle) ? "Pozisyon Belirtilmedi" : item.CurrentTitle)
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-building text-secondary me-2"></i>
+                            @(string.IsNullOrWhiteSpace(item.CurrentCompany) ? "Şirket Belirtilmedi" : item.CurrentCompany)
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                        <small class="text-muted">@(item.Department?.Name ?? "Bölüm Bilgisi Yok")</small>
+                        @if (!string.IsNullOrWhiteSpace(item.LinkedInUrl))
+                        {
+                            <a href="@item.LinkedInUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fa-brands fa-linkedin"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

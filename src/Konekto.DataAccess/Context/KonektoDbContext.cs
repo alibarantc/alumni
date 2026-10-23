@@ -16,6 +16,7 @@ public class KonektoDbContext : DbContext
     public DbSet<JobPosting> JobPostings => Set<JobPosting>();
     public DbSet<EmploymentHistory> EmploymentHistories => Set<EmploymentHistory>();
     public DbSet<Application> Applications => Set<Application>();
+    public DbSet<Announcement> Announcements => Set<Announcement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -108,6 +109,16 @@ public class KonektoDbContext : DbContext
                   .WithMany(a => a.Applications)
                   .HasForeignKey(e => e.AlumniId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Announcement configuration
+        modelBuilder.Entity<Announcement>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(250);
+            entity.Property(e => e.Content).IsRequired().HasMaxLength(4000);
+            entity.Property(e => e.Category).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Author).IsRequired().HasMaxLength(100);
         });
     }
 }
