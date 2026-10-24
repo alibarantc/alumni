@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Konekto.DataAccess.Context;
 using Konekto.Domain.Entities;
 using Konekto.Domain.Interfaces;
 
@@ -96,6 +98,82 @@ public class UsersController : ControllerBase
 
         return NoContent();
     }
+
+    // =========================================================================
+    // Nested Route: /api/users/{id}/job-postings (6. Hafta İsteri)
+    // =========================================================================
+
+    [HttpGet("{id}/job-postings")]
+    public async Task<ActionResult<IEnumerable<object>>> GetUserJobPostings(int id, [FromServices] KonektoDbContext db)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+            return NotFound(new { message = $"Kullanıcı bulunamadı (ID: {id})" });
+
+        var postings = await db.JobPostings
+            .Include(j => j.Company)
+            .Where(j => j.PostedByUserId == id)
+            .OrderByDescending(j => j.CreatedAt)
+            .Select(j => new
+            {
+                j.Id,
+                j.Title,
+                j.Description,
+                j.EmploymentType,
+                j.Location,
+                j.CreatedAt,
+                j.IsActive,
+                Company = j.Company == null ? null : new { j.Company.Id, j.Company.Name, j.Company.Industry }
+            })
+            .ToListAsync();
+
+        return Ok(postings);
+    }
+
+    [HttpPost("{id}/job-postings")]
+    public async Task<ActionResult<object>> CreateUserJobPosting(int id, [FromBody] CreateUserJobPostingRequest request, [FromServices] KonektoDbContext db)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+            return NotFound(new { message = $"Kullanıcı bulunamadı (ID: {id})" });
+
+        var posting = new JobPosting
+        {
+            Title = request.Title,
+            Description = request.Description,
+            EmploymentType = request.EmploymentType,
+            Location = request.Location,
+            CompanyId = request.CompanyId,
+            PostedByUserId = id,
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
+        };
+
+        db.JobPostings.Add(posting);
+        await db.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetUserJobPostings), new { id = user.Id }, new
+        {
+            posting.Id,
+            posting.Title,
+            posting.Description,
+            posting.EmploymentType,
+            posting.Location,
+            posting.CompanyId,
+            posting.PostedByUserId,
+            posting.CreatedAt,
+            posting.IsActive
+        });
+    }
+}
+
+public class CreateUserJobPostingRequest
+{
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string? EmploymentType { get; set; } = "Full-time";
+    public string? Location { get; set; }
+    public int? CompanyId { get; set; }
 }
 
 public class CreateUserRequest

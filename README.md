@@ -20,11 +20,12 @@ Welcome to **Konekto**, an enterprise university communication and alumni tracki
    - `AlumniController` (Web): Mezun rehberi ve arama filtreleme.
    - `Views/Shared/_Layout.cshtml`: Modern, duyarlı (responsive) Bootstrap 5 ve FontAwesome arayüzü.
 
-3. **API Controllers (REST API):**
+3. **API Controllers & Minimal API Uç Noktaları (REST API):**
    - `/api/announcements`: Duyuru CRUD işlemleri (`GET`, `POST`, `PUT`, `DELETE`).
    - `/api/users`: Kullanıcı CRUD işlemleri (`GET`, `POST`, `PUT`, `DELETE`).
+   - `/api/users/{id}/job-postings`: Kullanıcıya ait iş ilanları iç içe rotası (6. Hafta Nested Route - `GET`, `POST`).
    - `/api/alumni`: Mezun profili CRUD işlemleri (`GET`, `POST`, `PUT`, `DELETE`).
-   - `/api/job-postings`: İş ilanı ve alt başvuru (nested applications) API işlemleri.
+   - `/api/job-postings`: İş ilanı ve alt başvuru (`/applications`) API işlemleri.
 
 ---
 

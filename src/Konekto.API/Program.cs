@@ -180,6 +180,86 @@ app.MapDelete("/api/users/{id}", async (int id, IUserRepository repo) =>
 });
 
 // ========================================================
+// 1.1 USER NESTED ROUTES (6. Hafta İsteri: /api/users/{id}/job-postings)
+// ========================================================
+
+// GET /api/users/{id}/job-postings -> List all job postings published by this user
+app.MapGet("/api/users/{id}/job-postings", async (int id, KonektoDbContext db, IUserRepository userRepo) =>
+{
+    var user = await userRepo.GetByIdAsync(id);
+    if (user is null)
+    {
+        var inMemory = fallbackUsers.FirstOrDefault(u => u.Id == id);
+        if (inMemory is null) return Results.NotFound(new { error = $"Kullanıcı bulunamadı (ID: {id})" });
+    }
+
+    try
+    {
+        var postings = await db.JobPostings
+            .Include(j => j.Company)
+            .Where(j => j.PostedByUserId == id)
+            .OrderByDescending(j => j.CreatedAt)
+            .Select(j => new
+            {
+                j.Id,
+                j.Title,
+                j.Description,
+                j.EmploymentType,
+                j.Location,
+                j.CreatedAt,
+                j.IsActive,
+                Company = j.Company == null ? null : new { j.Company.Id, j.Company.Name, j.Company.Industry }
+            })
+            .ToListAsync();
+
+        return Results.Ok(postings);
+    }
+    catch
+    {
+        return Results.Ok(new List<object>());
+    }
+});
+
+// POST /api/users/{id}/job-postings -> Create a job posting under this user
+app.MapPost("/api/users/{id}/job-postings", async (int id, JobPostingDto dto, KonektoDbContext db, IUserRepository userRepo) =>
+{
+    var user = await userRepo.GetByIdAsync(id);
+    if (user is null)
+    {
+        var inMemory = fallbackUsers.FirstOrDefault(u => u.Id == id);
+        if (inMemory is null) return Results.NotFound(new { error = $"Kullanıcı bulunamadı (ID: {id})" });
+    }
+
+    var posting = new JobPosting
+    {
+        Title = dto.Title,
+        Description = dto.Description,
+        EmploymentType = dto.EmploymentType,
+        Location = dto.Location,
+        CompanyId = dto.CompanyId,
+        PostedByUserId = id,
+        CreatedAt = DateTime.UtcNow,
+        IsActive = true
+    };
+
+    db.JobPostings.Add(posting);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/api/users/{id}/job-postings/{posting.Id}", new
+    {
+        posting.Id,
+        posting.Title,
+        posting.Description,
+        posting.EmploymentType,
+        posting.Location,
+        posting.CompanyId,
+        posting.PostedByUserId,
+        posting.CreatedAt,
+        posting.IsActive
+    });
+});
+
+// ========================================================
 // 2. ALUMNI CRUD INTERFACES (Connected with Database)
 // ========================================================
 
@@ -467,7 +547,70 @@ app.MapDelete("/api/job-postings/{jobPostingId}/applications/{id}", async (int j
 });
 
 // ========================================================
-// 3. SEED & UTILITY ENDPOINTS
+// 5. ANNOUNCEMENTS CRUD (4. Hafta İsteri: Duyurular Uç Noktaları)
+// ========================================================
+
+// GET /api/announcements -> List all announcements
+app.MapGet("/api/announcements", async (IAnnouncementRepository repo) =>
+{
+    var announcements = await repo.GetAllAsync();
+    return Results.Ok(announcements);
+});
+
+// GET /api/announcements/active -> List active announcements
+app.MapGet("/api/announcements/active", async (IAnnouncementRepository repo) =>
+{
+    var announcements = await repo.GetActiveAsync();
+    return Results.Ok(announcements);
+});
+
+// GET /api/announcements/{id} -> Get announcement by ID
+app.MapGet("/api/announcements/{id}", async (int id, IAnnouncementRepository repo) =>
+{
+    var announcement = await repo.GetByIdAsync(id);
+    return announcement is not null ? Results.Ok(announcement) : Results.NotFound();
+});
+
+// POST /api/announcements -> Create announcement
+app.MapPost("/api/announcements", async (Announcement announcement, IAnnouncementRepository repo) =>
+{
+    if (string.IsNullOrWhiteSpace(announcement.Title) || string.IsNullOrWhiteSpace(announcement.Content))
+        return Results.BadRequest(new { error = "Başlık ve içerik alanları zorunludur." });
+
+    announcement.CreatedAt = DateTime.UtcNow;
+    announcement.IsActive = true;
+    if (string.IsNullOrWhiteSpace(announcement.Author))
+        announcement.Author = "Yönetici";
+
+    var created = await repo.AddAsync(announcement);
+    return Results.Created($"/api/announcements/{created.Id}", created);
+});
+
+// PUT /api/announcements/{id} -> Update announcement
+app.MapPut("/api/announcements/{id}", async (int id, Announcement announcement, IAnnouncementRepository repo) =>
+{
+    var existing = await repo.GetByIdAsync(id);
+    if (existing is null) return Results.NotFound();
+
+    existing.Title = announcement.Title;
+    existing.Content = announcement.Content;
+    existing.Category = announcement.Category;
+    existing.Author = announcement.Author;
+    existing.IsActive = announcement.IsActive;
+
+    await repo.UpdateAsync(existing);
+    return Results.Ok(existing);
+});
+
+// DELETE /api/announcements/{id} -> Delete announcement
+app.MapDelete("/api/announcements/{id}", async (int id, IAnnouncementRepository repo) =>
+{
+    var success = await repo.DeleteAsync(id);
+    return success ? Results.NoContent() : Results.NotFound();
+});
+
+// ========================================================
+// 6. SEED & UTILITY ENDPOINTS
 // ========================================================
 
 // POST /api/seed -> Trigger database seeding
