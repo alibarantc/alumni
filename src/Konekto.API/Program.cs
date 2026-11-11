@@ -6,6 +6,7 @@ using Konekto.Domain.Entities;
 using Konekto.Domain.Interfaces;
 using Konekto.Business.Factories;
 using Konekto.Business.Seeding;
+using Konekto.API.Middlewares;
 using ApplicationEntity = Konekto.Domain.Entities.Application;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +40,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Custom Terminal Logger Middleware (Format: time method route restype duration)
+app.UseRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
