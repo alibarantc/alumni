@@ -30,5 +30,14 @@ public class HomeController : Controller
     {
         return View();
     }
+
+    [HttpGet("not-found")]
+    [HttpGet("404")]
+    [ActionName("NotFound")]
+    public IActionResult PageNotFound()
+    {
+        Response.StatusCode = 404;
+        return View("NotFound");
+    }
 }
 

@@ -22,8 +22,6 @@ public class NotFoundGuardianMiddleware
         // If response is 404 Not Found and no content has been written yet
         if (context.Response.StatusCode == StatusCodes.Status404NotFound && !context.Response.HasStarted)
         {
-            context.Response.ContentType = "application/json";
-
             var route = context.Request.Path.Value ?? "/";
             var method = context.Request.Method;
             var reason = $"İstenen kaynak veya uç nokta bulunamadı (Route not found): '{method} {route}'. Lütfen URL ve HTTP metodunu kontrol ediniz.";
@@ -31,19 +29,36 @@ public class NotFoundGuardianMiddleware
             // Write 404 error directly to logs/error.logs
             ErrorFileLogger.Log(404, method, route, reason);
 
-            var errorResponse = new
+            // Check if request is an API request (Postman, REST client, JSON accept)
+            var isApi = route.StartsWith("/api", StringComparison.OrdinalIgnoreCase)
+                     || context.Request.Headers.Accept.ToString().Contains("application/json")
+                     || context.Request.Headers.ContainsKey("X-Requested-With");
+
+            if (isApi)
             {
-                status = 404,
-                error = "Not Found",
-                reason = reason,
-                route = route,
-                method = method,
-                timestamp = DateTime.UtcNow
-            };
+                context.Response.ContentType = "application/json";
 
-            _logger.LogWarning("404 Guardian intercepted missing route: {Method} {Route}", method, route);
+                var errorResponse = new
+                {
+                    status = 404,
+                    error = "Not Found",
+                    reason = reason,
+                    route = route,
+                    method = method,
+                    timestamp = DateTime.UtcNow
+                };
 
-            await context.Response.WriteAsJsonAsync(errorResponse);
+                _logger.LogWarning("404 Guardian intercepted missing API route: {Method} {Route}", method, route);
+
+                await context.Response.WriteAsJsonAsync(errorResponse);
+            }
+            else if (!route.Equals("/not-found", StringComparison.OrdinalIgnoreCase) &&
+                     !route.Equals("/404", StringComparison.OrdinalIgnoreCase))
+            {
+                // Redirect invalid web browser requests to the generic 404 page
+                _logger.LogInformation("404 Guardian redirecting invalid request {Route} to /not-found", route);
+                context.Response.Redirect("/not-found");
+            }
         }
     }
 }
