@@ -347,9 +347,11 @@ Serves as the global exception boundary intercepting unhandled errors:
   }
   ```
 - Logs complete stack trace and contextual attributes to `logs/error.logs`.
+- In **Production**, exception details are omitted from the HTTP response; only generic error information is returned. The full exception remains in server logs.
+- `GET /api/test-500` is available **only in Development**.
 
 ### 8.3 File Logging Specification (`logs/error.logs`)
-Persistent audit logs written asynchronously in thread-safe mode:
+Persistent audit logs appended synchronously with an in-process lock (thread-safe within one application process):
 ```text
 [YYYY-MM-DD HH:mm:ss] [STATUS] METHOD /path
 Reason: Error reason description
@@ -357,3 +359,11 @@ Detail: Underlying exception or context
 StackTrace: Full trace (for 500 errors)
 ------------------------------------------------------------
 ```
+
+
+### 8.4 JobPosting Required Company Migration
+- `JobPosting.CompanyId` is a non-nullable foreign key; the company must already exist.
+- On both POST and PUT, the API validates a non-empty title of at most 120 characters and a positive, existing `CompanyId`.
+- `Description` and `Location` are optional.
+- Migration `20261112010000_EnforceJobPostingRules` stops if legacy rows contain a missing company reference or overly long title. Correct those records before applying the migration; do not silently invent companies.
+- See `tests/postman/Konekto.Week6.postman_collection.json` for 400/404/500 and happy-path examples.
