@@ -35,7 +35,8 @@ public static class DatabaseSeeder
         // 4. Seed Job Postings
         if (!await context.JobPostings.AnyAsync())
         {
-            var jobPostings = JobPostingFactory.GetPredefinedJobPostings();
+            var companyIds = await context.Companies.OrderBy(c => c.Id).Select(c => c.Id).ToListAsync();
+            var jobPostings = JobPostingFactory.GetPredefinedJobPostings(companyIds);
             await context.JobPostings.AddRangeAsync(jobPostings);
             await context.SaveChangesAsync();
         }
