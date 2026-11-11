@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Konekto.DataAccess.Context;
 using Konekto.Domain.Entities;
 using Konekto.Domain.Interfaces;
+using Konekto.API.Validation;
 
 namespace Konekto.API.Controllers.Api;
 
@@ -137,14 +138,9 @@ public class UsersController : ControllerBase
         if (user == null)
             return NotFound(new { message = $"Kullanıcı bulunamadı (ID: {id})" });
 
-        if (string.IsNullOrWhiteSpace(request.Title))
-            return BadRequest(new { message = "Başlık (Title) alanı zorunludur." });
-
-        if (request.Title.Length > 120)
-            return BadRequest(new { message = "Başlık (Title) en fazla 120 karakter olabilir." });
-
-        if (request.CompanyId == null || request.CompanyId <= 0)
-            return BadRequest(new { message = "Şirket (CompanyId) alanı zorunludur." });
+        var validationError = await JobPostingValidation.ValidateAsync(db, request.Title, request.CompanyId);
+        if (validationError != null)
+            return BadRequest(new { message = validationError });
 
         var posting = new JobPosting
         {
@@ -152,7 +148,7 @@ public class UsersController : ControllerBase
             Description = request.Description ?? string.Empty,
             EmploymentType = request.EmploymentType,
             Location = request.Location,
-            CompanyId = request.CompanyId,
+            CompanyId = request.CompanyId!.Value,
             PostedByUserId = id,
             CreatedAt = DateTime.UtcNow,
             IsActive = true
@@ -179,7 +175,7 @@ public class UsersController : ControllerBase
 public class CreateUserJobPostingRequest
 {
     public string Title { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
+    public string? Description { get; set; }
     public string? EmploymentType { get; set; } = "Full-time";
     public string? Location { get; set; }
     public int? CompanyId { get; set; }
