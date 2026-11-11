@@ -44,9 +44,10 @@ public static class ErrorFileLogger
                 File.AppendAllText(logFile, sb.ToString(), Encoding.UTF8);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Suppress I/O failures to prevent affecting active HTTP response pipelines
+            // Logging failures must not break an HTTP response, but must be visible to operators.
+            Console.Error.WriteLine($"Could not append logs/error.logs: {ex.Message}");
         }
     }
 }
