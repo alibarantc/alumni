@@ -81,7 +81,8 @@ public class KonektoDbContext : DbContext
             entity.HasOne(e => e.Company)
                   .WithMany(c => c.JobPostings)
                   .HasForeignKey(e => e.CompanyId)
-                  .OnDelete(DeleteBehavior.SetNull);
+                  .IsRequired()
+                  .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(e => e.PostedByUser)
                   .WithMany()

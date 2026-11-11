@@ -30,9 +30,11 @@ public class NotFoundGuardianMiddleware
             ErrorFileLogger.Log(404, method, route, reason);
 
             // Check if request is an API request (Postman, REST client, JSON accept)
+            // Postman/curl usually accept */*; only HTML-navigation requests redirect.
+            var acceptsHtml = context.Request.Headers.Accept.ToString()
+                .Contains("text/html", StringComparison.OrdinalIgnoreCase);
             var isApi = route.StartsWith("/api", StringComparison.OrdinalIgnoreCase)
-                     || context.Request.Headers.Accept.ToString().Contains("application/json")
-                     || context.Request.Headers.ContainsKey("X-Requested-With");
+                     || !acceptsHtml;
 
             if (isApi)
             {

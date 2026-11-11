@@ -40,31 +40,33 @@ public class ServerErrorGuardianMiddleware
             _logger.LogError(ex, "5xx Guardian caught an unhandled exception at {Method} {Path}",
                 context.Request.Method, context.Request.Path);
 
-            if (!context.Response.HasStarted)
-            {
-                await HandleServerErrorAsync(context, ex);
-            }
+            if (context.Response.HasStarted)
+                throw; // A response already sent cannot be replaced with JSON.
+
+            await HandleServerErrorAsync(context, ex);
         }
     }
 
-    private static async Task HandleServerErrorAsync(HttpContext context, Exception? exception)
+    private async Task HandleServerErrorAsync(HttpContext context, Exception? exception)
     {
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
         var route = context.Request.Path.Value ?? "/";
         var method = context.Request.Method;
-        var detail = exception?.Message ?? "Sunucu isteği işlerken bir hata ile karşılaştı.";
+        // Keep diagnostics in server logs; never expose exception details in Production.
+        var detail = _env.IsDevelopment() ? exception?.Message : null;
 
-        // Write error directly to logs/error.logs
-        ErrorFileLogger.Log(500, method, route, "Internal Server Error", detail, exception?.StackTrace);
+        ErrorFileLogger.Log(500, method, route, "Internal Server Error",
+            exception?.Message ?? "Sunucu isteği işlerken bir hata ile karşılaştı.",
+            exception?.ToString());
 
         var errorResponse = new
         {
             status = 500,
             error = "Internal Server Error",
             reason = "Sunucu tarafında beklenmeyen bir hata meydana geldi (Internal server error).",
-            detail = detail,
+            detail,
             route = route,
             method = method,
             timestamp = DateTime.UtcNow

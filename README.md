@@ -26,7 +26,7 @@ Welcome to **Konekto**, an enterprise university communication and alumni tracki
    - `/api/users/{id}/job-postings`: Kullanıcıya ait iş ilanları iç içe rotası (6. Hafta Nested Route - `GET`, `POST`).
    - `/api/alumni`: Mezun profili CRUD işlemleri (`GET`, `POST`, `PUT`, `DELETE`).
    - `/api/job-postings`: İş ilanı ve alt başvuru (`/applications`) API işlemleri.
-   - `/api/test-500`: 5xx Guardian test uç noktası (`GET`).
+   - `/api/test-500`: Yalnızca **Development** ortamında erişilebilen 5xx Guardian test uç noktası (`GET`).
 
 4. **Middleware Mimarisi, Güvenlik Kalkanları (Guardians) ve Loglama:**
    - **Terminal Logger Middleware (`RequestLoggingMiddleware`):** Gelen her isteğin süresini (`Stopwatch`) ölçer ve terminale formatlı log basar:
@@ -107,3 +107,29 @@ Tarayıcınızdan erişin:
 * **Mezun Rehberi:** [http://localhost:5100/Alumni](http://localhost:5100/Alumni)
 * **Jenerik 404 Sayfası:** [http://localhost:5100/not-found](http://localhost:5100/not-found)
 * **Swagger API Dokümantasyonu:** [http://localhost:5100/swagger](http://localhost:5100/swagger)
+
+---
+
+## ✅ 6. Hafta: API Doğrulamaları ve Testler
+
+- **Çakışmayan rotalar:** `/api/users`, `/api/alumni`, `/api/announcements` ve `/api/job-postings` CRUD rotaları tek bir MVC API Controller üzerinden sunulur. Minimal API tarafında yalnızca MVC Controller'da olmayan application detay rotaları ve yardımcı endpoint'ler kalır.
+- **JobPosting POST / PUT kuralları:** Boş başlık reddedilir, başlık en fazla **120 karakter** olmalıdır, `CompanyId` zorunludur ve **Companies** tablosunda bulunmalıdır. `Description` ve `Location` gönderilmeyebilir.
+- **Nested JobPosting POST:** `POST /api/users/{id}/job-postings` aynı doğrulamaları kullanır.
+- **5xx Guardian:** Production yanıtlarında istisna mesajı istemciye verilmez; ayrıntılar sunucu loglarına yazılır. Bilinçli hata üreten `/api/test-500` sadece Development'ta açıktır.
+- **Hata dosyası:** `logs/error.logs`, uygulamanın **çalışma dizinine** göre hata sırasında oluşturulur (Git'e gönderilmez). Dosyaya yazılamazsa stderr'e bildirilir.
+
+### Veritabanı geçişi
+
+`JobPosting.CompanyId` veritabanında artık `NOT NULL`, `Description` ise isteğe bağlıdır. Yeni migration `20261112010000_EnforceJobPostingRules` olarak eklenmiştir. Mevcut ilanlarda `CompanyId IS NULL` veya `LEN(Title) > 120` varsa migration **bilinçli olarak durur**; önce bu eski kayıtları gerçek bir şirkete bağlayın / başlıkları düzeltin, veri otomatik değiştirilmez.
+
+```bash
+dotnet restore Konekto.sln
+dotnet ef database update --project src/Konekto.DataAccess --startup-project src/Konekto.API
+dotnet run --project src/Konekto.API
+```
+
+### Postman doğrulaması
+
+`tests/postman/Konekto.Week6.postman_collection.json` koleksiyonunu Postman'e aktarın. `baseUrl` (varsayılan `http://localhost:5100`), `validCompanyId` ve `userId` değişkenlerini çalışan veritabanındaki geçerli kayıtlarla eşleştirin. Koleksiyonu **sırasıyla** çalıştırın: 400 doğrulama yanıtları, 404 neden mesajı, geçerli POST/PUT, kullanıcı alt rotası ve 500 yanıtı denetlenir. 500 testi için `ASPNETCORE_ENVIRONMENT=Development` kullanılmalıdır. Koleksiyonun eklenmesi, testlerin çalıştırıldığı anlamına gelmez.
+
+GitHub Actions `.github/workflows/dotnet-build.yml` Pull Request'lerde .NET 9 restore/build denetimi yapar; Postman entegrasyon testleri için çalışan SQL Server hâlâ gereklidir.

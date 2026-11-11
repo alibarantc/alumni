@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Konekto.DataAccess.Context;
 using Konekto.Domain.Entities;
+using Konekto.API.Validation;
 
 namespace Konekto.API.Controllers.Api;
 
@@ -67,14 +68,9 @@ public class JobPostingsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<object>> Create([FromBody] JobPostingCreateDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Title))
-            return BadRequest(new { message = "Başlık (Title) alanı zorunludur." });
-
-        if (dto.Title.Length > 120)
-            return BadRequest(new { message = "Başlık (Title) en fazla 120 karakter olabilir." });
-
-        if (dto.CompanyId == null || dto.CompanyId <= 0)
-            return BadRequest(new { message = "Şirket (CompanyId) alanı zorunludur." });
+        var validationError = await JobPostingValidation.ValidateAsync(_context, dto.Title, dto.CompanyId);
+        if (validationError != null)
+            return BadRequest(new { message = validationError });
 
         var posting = new JobPosting
         {
@@ -82,7 +78,7 @@ public class JobPostingsController : ControllerBase
             Description = dto.Description ?? string.Empty,
             EmploymentType = dto.EmploymentType,
             Location = dto.Location,
-            CompanyId = dto.CompanyId,
+            CompanyId = dto.CompanyId!.Value,
             PostedByUserId = dto.PostedByUserId,
             CreatedAt = DateTime.UtcNow,
             IsActive = true
@@ -101,11 +97,15 @@ public class JobPostingsController : ControllerBase
         if (posting == null)
             return NotFound(new { message = $"İş ilanı bulunamadı (ID: {id})" });
 
+        var validationError = await JobPostingValidation.ValidateAsync(_context, dto.Title, dto.CompanyId);
+        if (validationError != null)
+            return BadRequest(new { message = validationError });
+
         posting.Title = dto.Title;
         posting.Description = dto.Description;
         posting.EmploymentType = dto.EmploymentType;
         posting.Location = dto.Location;
-        posting.CompanyId = dto.CompanyId;
+        posting.CompanyId = dto.CompanyId!.Value;
 
         await _context.SaveChangesAsync();
         return Ok(new { posting.Id, posting.Title, posting.EmploymentType, posting.Location });
@@ -179,7 +179,7 @@ public class JobPostingsController : ControllerBase
 public class JobPostingCreateDto
 {
     public string Title { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
+    public string? Description { get; set; }
     public string? EmploymentType { get; set; } = "Full-time";
     public string? Location { get; set; }
     public int? CompanyId { get; set; }
