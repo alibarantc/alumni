@@ -137,10 +137,19 @@ public class UsersController : ControllerBase
         if (user == null)
             return NotFound(new { message = $"Kullanıcı bulunamadı (ID: {id})" });
 
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return BadRequest(new { message = "Başlık (Title) alanı zorunludur." });
+
+        if (request.Title.Length > 120)
+            return BadRequest(new { message = "Başlık (Title) en fazla 120 karakter olabilir." });
+
+        if (request.CompanyId == null || request.CompanyId <= 0)
+            return BadRequest(new { message = "Şirket (CompanyId) alanı zorunludur." });
+
         var posting = new JobPosting
         {
             Title = request.Title,
-            Description = request.Description,
+            Description = request.Description ?? string.Empty,
             EmploymentType = request.EmploymentType,
             Location = request.Location,
             CompanyId = request.CompanyId,

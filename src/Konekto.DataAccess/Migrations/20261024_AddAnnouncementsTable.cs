@@ -38,3 +38,4 @@ namespace Konekto.DataAccess.Migrations
         }
     }
 }
+

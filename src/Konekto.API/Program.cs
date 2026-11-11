@@ -230,10 +230,19 @@ app.MapPost("/api/users/{id}/job-postings", async (int id, JobPostingDto dto, Ko
         if (inMemory is null) return Results.NotFound(new { error = $"Kullanıcı bulunamadı (ID: {id})" });
     }
 
+    if (string.IsNullOrWhiteSpace(dto.Title))
+        return Results.BadRequest(new { error = "Başlık (Title) alanı zorunludur." });
+
+    if (dto.Title.Length > 120)
+        return Results.BadRequest(new { error = "Başlık (Title) en fazla 120 karakter olabilir." });
+
+    if (dto.CompanyId == null || dto.CompanyId <= 0)
+        return Results.BadRequest(new { error = "Şirket (CompanyId) alanı zorunludur." });
+
     var posting = new JobPosting
     {
         Title = dto.Title,
-        Description = dto.Description,
+        Description = dto.Description ?? string.Empty,
         EmploymentType = dto.EmploymentType,
         Location = dto.Location,
         CompanyId = dto.CompanyId,
@@ -363,10 +372,19 @@ app.MapDelete("/api/alumni/{id}", async (int id, IAlumniRepository repo) =>
 // POST /api/job-postings
 app.MapPost("/api/job-postings", async (JobPostingDto dto, KonektoDbContext db) =>
 {
+    if (string.IsNullOrWhiteSpace(dto.Title))
+        return Results.BadRequest(new { error = "Başlık (Title) alanı zorunludur." });
+
+    if (dto.Title.Length > 120)
+        return Results.BadRequest(new { error = "Başlık (Title) en fazla 120 karakter olabilir." });
+
+    if (dto.CompanyId == null || dto.CompanyId <= 0)
+        return Results.BadRequest(new { error = "Şirket (CompanyId) alanı zorunludur." });
+
     var posting = new JobPosting
     {
         Title = dto.Title,
-        Description = dto.Description,
+        Description = dto.Description ?? string.Empty,
         EmploymentType = dto.EmploymentType,
         Location = dto.Location,
         CompanyId = dto.CompanyId,

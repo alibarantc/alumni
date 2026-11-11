@@ -182,15 +182,43 @@ Historical timeline tracking previous and current employment positions.
 
 ---
 
-### 3.5 `Companies` & `JobPostings` Tables
-Facilitates networking, recruitment, and alumni-led job postings for recent graduates and students.
+### 3.5 `Companies` Table
+Corporate employer records, partner organizations, and alumni workplace directory.
 
-| Table | Key Columns | Relationships / Notes |
-| :--- | :--- | :--- |
-| **`Companies`** | `Id (PK)`, `Name (Unique)`, `Industry`, `Website`, `Location` | Centralized corporate catalog |
-| **`JobPostings`** | `Id (PK)`, `PostedByUserId (FK -> Users)`, `CompanyId (FK -> Companies)`, `Title`, `Description`, `EmploymentType`, `Location`, `CreatedAt`, `IsActive` | Employment opportunities board (`Full-time`, `Internship`, `Remote`) |
+| Column | Data Type (C# / SQL) | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `Id` | `int` / `INT` | `PK`, `IDENTITY(1,1)` | Primary key |
+| `Name` | `string` / `NVARCHAR(150)` | `NOT NULL`, `UNIQUE` | Enterprise / organization name |
+| `Industry` | `string?` / `NVARCHAR(100)` | `NULL` | Industry sector (e.g. Technology, Finance) |
+| `Website` | `string?` / `NVARCHAR(255)` | `NULL` | Official corporate web domain |
+| `Location` | `string?` / `NVARCHAR(150)` | `NULL` | Company headquarters / primary city |
 
-### 3.6 `Applications` Table
+---
+
+### 3.6 `JobPostings` Table
+Employment opportunities and internship listings posted by alumni, partner companies, or administrators.
+
+| Column | Data Type (C# / SQL) | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `Id` | `int` / `INT` | `PK`, `IDENTITY(1,1)` | Primary key |
+| `Title` | `string` / `NVARCHAR(120)` | `NOT NULL`, `MAX 120` | Job position title (**Required**, max 120 characters) |
+| `CompanyId` | `int` / `INT` | `NOT NULL`, `FK(Companies.Id)` | Associated employer enterprise (**Required**) |
+| `Description` | `string?` / `NVARCHAR(MAX)` | `NULL` | Detailed role specifications & requirements (**Optional**) |
+| `Location` | `string?` / `NVARCHAR(150)` | `NULL` | City / workplace location (**Optional**, e.g. Istanbul, Remote) |
+| `EmploymentType` | `string?` / `NVARCHAR(50)` | `NULL`, `DEFAULT 'Full-time'` | Work type (`Full-time`, `Part-time`, `Internship`, `Remote`) |
+| `PostedByUserId` | `int?` / `INT` | `NULL`, `FK(Users.Id)` | Publishing user / alumni identity |
+| `CreatedAt` | `DateTime` / `DATETIME2` | `NOT NULL`, `DEFAULT GETUTCDATE()` | Posting creation timestamp |
+| `IsActive` | `bool` / `BIT` | `NOT NULL`, `DEFAULT 1` | Visibility / active status toggle (soft-delete flag) |
+
+#### JobPosting Business Rules & Validation Constraints:
+* **Title (Required, Max 120 Characters):** The position title is mandatory and strictly bounded to at most 120 characters.
+* **Company (Required):** Every job posting must be explicitly linked to a valid enterprise via `CompanyId`. Unassigned postings are prohibited.
+* **Location / City (Optional):** City or location is optional to accommodate fully remote or multi-city roles.
+* **Description (Optional):** Extended description field is optional; quick postings can be published with just a title and company reference.
+
+---
+
+### 3.7 `Applications` Table
 Tracks alumni job applications submitted through the platform.
 
 | Column | Data Type (C# / SQL) | Constraints | Description |
@@ -204,7 +232,7 @@ Tracks alumni job applications submitted through the platform.
 
 ---
 
-### 3.6 `Announcements` Table
+### 3.8 `Announcements` Table
 Campus news, events, and career notifications published by administrators and alumni offices.
 
 | Column | Data Type (C# / SQL) | Constraints | Description |
@@ -272,9 +300,13 @@ volumes:
 - PUT    /api/job-postings/{id}
 - DELETE /api/job-postings/{id}
 
-### Nested Routes (Applications)
+### Nested Routes (Applications Under Job Postings)
 - GET    /api/job-postings/{jobPostingId}/applications
 - GET    /api/job-postings/{jobPostingId}/applications/{id}
 - POST   /api/job-postings/{jobPostingId}/applications
 - PUT    /api/job-postings/{jobPostingId}/applications/{id}
 - DELETE /api/job-postings/{jobPostingId}/applications/{id}
+
+### Nested Routes (User Job Postings)
+- GET    /api/users/{id}/job-postings
+- POST   /api/users/{id}/job-postings

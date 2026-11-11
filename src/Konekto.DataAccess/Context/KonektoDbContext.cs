@@ -73,8 +73,8 @@ public class KonektoDbContext : DbContext
         modelBuilder.Entity<JobPosting>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.Description).IsRequired().HasMaxLength(5000);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(120);
+            entity.Property(e => e.Description).HasMaxLength(5000);
             entity.Property(e => e.EmploymentType).HasMaxLength(50);
             entity.Property(e => e.Location).HasMaxLength(150);
 

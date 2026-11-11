@@ -67,10 +67,19 @@ public class JobPostingsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<object>> Create([FromBody] JobPostingCreateDto dto)
     {
+        if (string.IsNullOrWhiteSpace(dto.Title))
+            return BadRequest(new { message = "Başlık (Title) alanı zorunludur." });
+
+        if (dto.Title.Length > 120)
+            return BadRequest(new { message = "Başlık (Title) en fazla 120 karakter olabilir." });
+
+        if (dto.CompanyId == null || dto.CompanyId <= 0)
+            return BadRequest(new { message = "Şirket (CompanyId) alanı zorunludur." });
+
         var posting = new JobPosting
         {
             Title = dto.Title,
-            Description = dto.Description,
+            Description = dto.Description ?? string.Empty,
             EmploymentType = dto.EmploymentType,
             Location = dto.Location,
             CompanyId = dto.CompanyId,
