@@ -44,6 +44,9 @@ var app = builder.Build();
 // Custom Terminal Logger Middleware (Format: time method route restype duration)
 app.UseRequestLogging();
 
+// 5xx Guardian Middleware (Catches unhandled exceptions and returns structured JSON on 500 errors)
+app.Use5xxGuardian();
+
 // 404 Guardian Middleware (Returns structured JSON with reason for 404 errors)
 app.UseNotFoundGuardian();
 
@@ -76,6 +79,12 @@ app.MapGet("/api/health", () => Results.Json(new { status = "Healthy", timestamp
 
 // 7. swagger GET /api/swagger
 app.MapGet("/api/swagger", () => Results.Redirect("/swagger"));
+
+// 8. Test 5xx Guardian GET /api/test-500
+app.MapGet("/api/test-500", () => 
+{
+    throw new InvalidOperationException("5xx Guardian test exception: Sunucu tarafı simüle edilmiş bir hata üretti.");
+});
 
 // In-Memory Fallback Stores
 var fallbackUsers = new List<User>();
