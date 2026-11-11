@@ -28,6 +28,9 @@ public class NotFoundGuardianMiddleware
             var method = context.Request.Method;
             var reason = $"İstenen kaynak veya uç nokta bulunamadı (Route not found): '{method} {route}'. Lütfen URL ve HTTP metodunu kontrol ediniz.";
 
+            // Write 404 error directly to logs/error.logs
+            ErrorFileLogger.Log(404, method, route, reason);
+
             var errorResponse = new
             {
                 status = 404,

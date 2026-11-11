@@ -54,13 +54,17 @@ public class ServerErrorGuardianMiddleware
 
         var route = context.Request.Path.Value ?? "/";
         var method = context.Request.Method;
+        var detail = exception?.Message ?? "Sunucu isteği işlerken bir hata ile karşılaştı.";
+
+        // Write error directly to logs/error.logs
+        ErrorFileLogger.Log(500, method, route, "Internal Server Error", detail, exception?.StackTrace);
 
         var errorResponse = new
         {
             status = 500,
             error = "Internal Server Error",
             reason = "Sunucu tarafında beklenmeyen bir hata meydana geldi (Internal server error).",
-            detail = exception?.Message ?? "Sunucu isteği işlerken bir hata ile karşılaştı.",
+            detail = detail,
             route = route,
             method = method,
             timestamp = DateTime.UtcNow
