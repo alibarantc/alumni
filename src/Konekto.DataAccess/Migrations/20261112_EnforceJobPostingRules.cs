@@ -12,7 +12,7 @@ namespace Konekto.DataAccess.Migrations;
 /// Legacy rows without a company must be repaired explicitly before this migration runs.
 /// </summary>
 [DbContext(typeof(KonektoDbContext))]
-[Migration("20261112_EnforceJobPostingRules")]
+[Migration("20261112010000_EnforceJobPostingRules")]
 public partial class EnforceJobPostingRules : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
