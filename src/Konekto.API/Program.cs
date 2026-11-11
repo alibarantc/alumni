@@ -44,6 +44,9 @@ var app = builder.Build();
 // Custom Terminal Logger Middleware (Format: time method route restype duration)
 app.UseRequestLogging();
 
+// 404 Guardian Middleware (Returns structured JSON with reason for 404 errors)
+app.UseNotFoundGuardian();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
