@@ -26,6 +26,23 @@ Welcome to **Konekto**, an enterprise university communication and alumni tracki
    - `/api/users/{id}/job-postings`: Kullanıcıya ait iş ilanları iç içe rotası (6. Hafta Nested Route - `GET`, `POST`).
    - `/api/alumni`: Mezun profili CRUD işlemleri (`GET`, `POST`, `PUT`, `DELETE`).
    - `/api/job-postings`: İş ilanı ve alt başvuru (`/applications`) API işlemleri.
+   - `/api/test-500`: 5xx Guardian test uç noktası (`GET`).
+
+4. **Middleware Mimarisi, Güvenlik Kalkanları (Guardians) ve Loglama:**
+   - **Terminal Logger Middleware (`RequestLoggingMiddleware`):** Gelen her isteğin süresini (`Stopwatch`) ölçer ve terminale formatlı log basar:
+     `time method route restype duration` (Örn: `10:20:30 post /law 201 18ms`).
+   - **404 Guardian Middleware (`NotFoundGuardianMiddleware`):**
+     - API ve JSON istemcileri için hatanın nedenini (`reason`) içeren yapılandırılmış 404 JSON nesnesi döner.
+     - Web tarayıcı isteklerinde kullanıcıyı otomatik olarak jenerik 404 sayfasına (`/not-found`) yönlendirir.
+     - Tüm 404 olaylarını `logs/error.logs` dosyasına yazar.
+   - **5xx Guardian Middleware (`ServerErrorGuardianMiddleware`):** Uygulama genelinde yakalanmamış sunucu istisnalarını (`unhandled exceptions`) yakalar, çöküşü önler, stack trace'i loglar ve standart 500 JSON döner.
+   - **Dosya Tabanlı Hata Loglama (`ErrorFileLogger`):** `logs/error.logs` dosyasına thread-safe biçimde tüm 404 ve 5xx hata kayıtlarını işler.
+   - **Jenerik 404 Görünümü (`Views/Home/NotFound.cshtml`):** Modern Bootstrap 5 kart tasarımıyla kullanıcı dostu hata ve yönlendirme arayüzü sunar.
+
+5. **İş Kuralları ve Doğrulamalar (JobPosting Validation Rules):**
+   - **`Title`:** Zorunlu alan, en fazla 120 karakter (`max 120 chars`).
+   - **`CompanyId`:** Zorunlu alan; geçerli bir şirkete ait olmalıdır.
+   - **`Location (City)` & `Description`:** İsteğe bağlı alanlar (`optional`).
 
 ---
 
@@ -51,6 +68,9 @@ Veritabanı şeması, ER diyagramları ve normalizasyon kuralları detaylı olar
 ```text
 alumni-main/
 │
+├── logs/                       # Hata denetim logları
+│   └── error.logs              # 404 ve 5xx hata detayları
+│
 ├── src/
 │   ├── Konekto.Domain/         # Varlıklar (Entities: User, Announcement, Alumni vb.) & Arayüzler
 │   ├── Konekto.DataAccess/     # EF Core DbContext, Repository sınıfları, Migrations
@@ -58,7 +78,8 @@ alumni-main/
 │   └── Konekto.API/
 │       ├── Controllers/        # Web MVC Controllers (Home, Announcements, Alumni)
 │       │   └── Api/            # API Controllers (Announcements, Users, Alumni, JobPostings)
-│       ├── Views/              # Razor Görünümleri (Home, Announcements, Alumni, Shared)
+│       ├── Middlewares/        # RequestLogging, NotFoundGuardian, ServerErrorGuardian, ErrorFileLogger
+│       ├── Views/              # Razor Görünümleri (Home, Announcements, Alumni, Shared, NotFound)
 │       ├── wwwroot/            # Statik dosyalar
 │       └── Program.cs          # Dependency Injection & Routing Yapılandırması
 │
@@ -84,4 +105,5 @@ Tarayıcınızdan erişin:
 * **Web Arayüzü (MVC Views):** [http://localhost:5100/](http://localhost:5100/)
 * **Duyurular Sayfası:** [http://localhost:5100/Announcements](http://localhost:5100/Announcements)
 * **Mezun Rehberi:** [http://localhost:5100/Alumni](http://localhost:5100/Alumni)
+* **Jenerik 404 Sayfası:** [http://localhost:5100/not-found](http://localhost:5100/not-found)
 * **Swagger API Dokümantasyonu:** [http://localhost:5100/swagger](http://localhost:5100/swagger)

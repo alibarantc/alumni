@@ -310,3 +310,50 @@ volumes:
 ### Nested Routes (User Job Postings)
 - GET    /api/users/{id}/job-postings
 - POST   /api/users/{id}/job-postings
+
+---
+
+## 8. Error Handling, Guardians & File Logging Architecture
+
+### 8.1 404 Guardian Middleware (`NotFoundGuardianMiddleware`)
+Catches any unhandled 404 Not Found response and branches behavior based on the request type:
+- **API / JSON Clients (`/api/...`):** Returns structured JSON specifying the missing route reason:
+  ```json
+  {
+    "status": 404,
+    "error": "Not Found",
+    "reason": "İstenen kaynak veya uç nokta bulunamadı (Route not found): 'GET /api/...'.",
+    "route": "/api/...",
+    "method": "GET",
+    "timestamp": "2026-11-12T00:00:00Z"
+  }
+  ```
+- **Web Browser Clients:** Automatically redirects the user to the generic user-friendly 404 page (`/not-found`).
+- **Audit Persistence:** Appends every 404 occurrence to `logs/error.logs`.
+
+### 8.2 5xx Guardian Middleware (`ServerErrorGuardianMiddleware`)
+Serves as the global exception boundary intercepting unhandled errors:
+- Prevents server-side thread crashes and raw stack trace leaks.
+- Responds with standardized JSON payload:
+  ```json
+  {
+    "status": 500,
+    "error": "Internal Server Error",
+    "reason": "Sunucu tarafında beklenmeyen bir hata meydana geldi.",
+    "detail": "Exception message",
+    "route": "/api/...",
+    "method": "POST",
+    "timestamp": "2026-11-12T00:00:00Z"
+  }
+  ```
+- Logs complete stack trace and contextual attributes to `logs/error.logs`.
+
+### 8.3 File Logging Specification (`logs/error.logs`)
+Persistent audit logs written asynchronously in thread-safe mode:
+```text
+[YYYY-MM-DD HH:mm:ss] [STATUS] METHOD /path
+Reason: Error reason description
+Detail: Underlying exception or context
+StackTrace: Full trace (for 500 errors)
+------------------------------------------------------------
+```
