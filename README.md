@@ -60,6 +60,13 @@ Konekto platformunun marka felsefesi, görsel kimliği, renk sistemi, tipografi 
 
 ---
 
+## 📐 Tasarım Sistemi Spesifikasyonu (DESIGN.md)
+
+Refero ([styles.refero.design](https://styles.refero.design)) ve [VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md) standartlarına uygun olarak hazırlanan, geliştiriciler ve AI kodlama ajanları için görsel referans kaynağı:
+👉 **[Design System Specification (DESIGN.md)](./DESIGN.md)**
+
+---
+
 ## 🛠️ Teknoloji Yığını
 
 * **Backend & Web:** C# (.NET 9.0) & ASP.NET Core (MVC + Web API)
@@ -91,6 +98,7 @@ alumni-main/
 │       └── Program.cs          # Dependency Injection & Routing Yapılandırması
 │
 ├── brand.md                    # Marka kimliği ve tasarım kılavuzu (Brand Guidelines)
+├── DESIGN.md                   # Tasarım sistemi ve token spesifikasyonu (VoltAgent / Refero formatı)
 ├── ddd.md                      # Kapsamlı Veri Tasarım Dokümanı (DDD)
 ├── Dockerfile                  # Multi-stage production container build
 ├── docker-compose.yml          # Konteyner orkestrasyonu
