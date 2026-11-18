@@ -1,42 +1,217 @@
 @{
-    ViewData["Title"] = "Hakkında";
+    ViewData["Title"] = "Hakkında & Mimari Ekosistem";
 }
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="bg-white p-5 rounded-4 border shadow-sm">
-            <h2 class="fw-bold text-dark mb-4">
-                <i class="fa-solid fa-graduation-cap text-primary me-2"></i> Konekto Hakkında
-            </h2>
-            <p class="text-muted leading-relaxed mb-4">
-                <strong>Konekto</strong>, üniversite mezunları ile öğrencilerin ve akademik birimlerin sürekli iletişim ve iş birliği içinde olmasını sağlayan kapsamlı bir mezun takip ve kariyer platformudur.
-            </p>
-            
-            <h5 class="fw-bold text-dark mt-4 mb-3">Mimari & Teknoloji Yığını</h5>
-            <ul class="list-group list-group-flush mb-4">
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span><i class="fa-solid fa-layer-group text-primary me-2"></i> Mimari</span>
-                    <span class="badge bg-primary">Katmanlı Mimari (Clean Architecture)</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span><i class="fa-brands fa-microsoft text-info me-2"></i> Çatı</span>
-                    <span class="badge bg-dark">ASP.NET Core 9.0</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span><i class="fa-solid fa-code text-success me-2"></i> API & Web</span>
-                    <span class="badge bg-success">Web Controllers (MVC Razor) + API Controllers</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span><i class="fa-solid fa-database text-warning me-2"></i> Veritabanı & ORM</span>
-                    <span class="badge bg-warning text-dark">Entity Framework Core 9.0 (Code-First)</span>
-                </li>
-            </ul>
+<style>
+    .about-hero-box {
+        background: linear-gradient(135deg, #4F46E5 0%, #312E81 100%);
+        color: #ffffff;
+        border-radius: 24px;
+        padding: 44px 36px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px -10px rgba(79, 70, 229, 0.3);
+    }
+    .about-hero-box::after {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .tech-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 18px;
+        padding: 24px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .tech-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08);
+        transform: translateY(-3px);
+    }
+    .tech-icon-circle {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        margin-bottom: 16px;
+    }
+</style>
 
-            <div class="alert alert-light border mt-4">
-                <i class="fa-solid fa-circle-check text-success me-2"></i>
-                4. Hafta isterleri kapsamında <strong>Katmanlı Mimari</strong>, <strong>User & Announcement Modelleri</strong>, <strong>Web MVC Controllers</strong>, <strong>API Controllers</strong> ve <strong>Razor Görünümleri</strong> başarıyla entegre edilmiştir.
+<!-- 1. HERO MISSION BANNER -->
+<div class="about-hero-box mb-5">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <span class="badge bg-white text-primary fw-bold px-3 py-1 rounded-pill mb-3">
+                <i class="fa-solid fa-graduation-cap me-1"></i> Konekto Platformu
+            </span>
+            <h1 class="display-6 fw-bold mb-3" style="letter-spacing: -0.02em;">
+                Üniversite & Mezun İş Birliği Ekosistemi
+            </h1>
+            <p class="lead fs-6 text-white-50 mb-0" style="line-height: 1.6;">
+                Konekto; mezunlar, öğrenciler, akademisyenler ve iş dünyası arasında güvenli, sürdürülebilir ve verimli bir köprü kurmak amacıyla tasarlanmış kurumsal düzeyde bir bilgi ve iletişim sistemidir.
+            </p>
+        </div>
+        <div class="col-lg-4 d-none d-lg-block text-end pe-4">
+            <i class="fa-solid fa-network-wired fa-6x text-white opacity-25"></i>
+        </div>
+    </div>
+</div>
+
+<!-- 2. DEĞER ÖNERİSİ & VİZYON KARTLARI -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card card-custom p-4 h-100">
+            <div class="stat-icon-wrapper bg-primary-subtle text-primary mb-3">
+                <i class="fa-solid fa-users-gear"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-2">Mezun Dayanışması</h5>
+            <p class="text-muted small mb-0">
+                Mezunlarımızın birbirleriyle ve üniversiteyle bağlarını sıcak tutarak güçlü bir mesleki yardımlaşma ağı oluşturuyoruz.
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-custom p-4 h-100">
+            <div class="stat-icon-wrapper bg-success-subtle text-success mb-3">
+                <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-2">Kariyer & Staj Fırsatları</h5>
+            <p class="text-muted small mb-0">
+                Partner şirketler ve mezunlarımızın kuruluşları tarafından açılan iş ilanlarını doğrudan öğrencilerimizle buluşturuyoruz.
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-custom p-4 h-100">
+            <div class="stat-icon-wrapper bg-warning-subtle text-warning mb-3">
+                <i class="fa-solid fa-handshake-angle"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-2">Mentorluk & Rehberlik</h5>
+            <p class="text-muted small mb-0">
+                Sektörde deneyim kazanmış kıdemli mezunlar ile henüz öğrenim gören genç yetenekleri mentorluk programlarında eşleştiriyoruz.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- 3. TEKNOLOJİ YIĞINI & MİMARİ ALTYAPI -->
+<div class="mb-5">
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1 rounded-pill">Teknoloji & Standartlar</span>
+    </div>
+    <h2 class="h3 fw-bold text-dark mb-1">Modern & Güvenilir Mimari Yığın</h2>
+    <p class="text-muted small mb-4">Konekto, kurumsal yazılım standartları ve en son .NET teknolojileriyle sıfırdan geliştirilmiştir.</p>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="tech-card">
+                <div class="tech-icon-circle bg-primary-subtle text-primary">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">Katmanlı Mimari</h6>
+                <div class="badge bg-light text-secondary border mb-2">Clean Architecture</div>
+                <p class="text-muted small mb-0">Domain, Application, DataAccess ve Presentation katmanları ile tam sorumluluk ayrımı (SoC).</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="tech-card">
+                <div class="tech-icon-circle bg-dark text-white">
+                    <i class="fa-brands fa-microsoft"></i>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">ASP.NET Core 9.0</h6>
+                <div class="badge bg-light text-secondary border mb-2">C# 13 Runtime</div>
+                <p class="text-muted small mb-0">Yüksek performanslı Kestrel sunucusu, asenkron I/O ve dependency injection tabanlı çekirdek.</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="tech-card">
+                <div class="tech-icon-circle bg-warning-subtle text-warning">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">EF Core 9.0</h6>
+                <div class="badge bg-light text-secondary border mb-2">Code-First ORM</div>
+                <p class="text-muted small mb-0">SQL Server veritabanı, otomatik migration yönetimi, LINQ sorguları ve güvenli veri erişimi.</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="tech-card">
+                <div class="tech-icon-circle bg-info-subtle text-info">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">Özel Middleware'ler</h6>
+                <div class="badge bg-light text-secondary border mb-2">Guardian & Logging</div>
+                <p class="text-muted small mb-0">RequestLoggingMiddleware, NotFoundGuardian, ServerErrorGuardian ile tam sistem izlenebilirliği.</p>
             </div>
         </div>
     </div>
 </div>
 
+<!-- 4. SİSTEM ÖZELLİKLERİ VE HAFTALIK İLERLEME -->
+<div class="card p-4 bg-white border rounded-4 shadow-sm mb-4">
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="brand-icon-box" style="width: 36px; height: 36px;">
+            <i class="fa-solid fa-clipboard-check"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold text-dark mb-0">Geliştirme Yol Haritası & Proje Başarımları</h5>
+            <small class="text-muted">Ders ve dönem isterleri doğrultusunda tamamlanan modüller</small>
+        </div>
+    </div>
+
+    <div class="row g-3 pt-2">
+        <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="fa-solid fa-circle-check text-success"></i>
+                    <strong class="text-dark small">Katmanlı Mimari & Veri Modelleri</strong>
+                </div>
+                <p class="text-muted small mb-0">Domain, DataAccess, API projeleri yapılandırıldı; User, Alumni, Announcement, JobPosting modelleri tanımlandı.</p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="fa-solid fa-circle-check text-success"></i>
+                    <strong class="text-dark small">MVC & API Çift Arayüz Mimarisi</strong>
+                </div>
+                <p class="text-muted small mb-0">Son kullanıcı için Bootstrap 5 Razor görünümleri ve üçüncü parti entegrasyonlar için Swagger dokümante REST API sağlandı.</p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="fa-solid fa-circle-check text-success"></i>
+                    <strong class="text-dark small">Kariyer & İlan İş Kuralları</strong>
+                </div>
+                <p class="text-muted small mb-0">İş ilanı validasyon kuralları, şirket ilişkileri ve `/api/users/{id}/job-postings` rotaları tamamlandı.</p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="fa-solid fa-circle-check text-success"></i>
+                    <strong class="text-dark small">Hata Yakalama & Loglama Altyapısı</strong>
+                </div>
+                <p class="text-muted small mb-0">Özel 404/500 middleware koruyucuları, `/logs/error.logs` dosyasına otomatik hata loglama ve kullanıcı dostu hata sayfaları.</p>
+            </div>
+        </div>
+    </div>
+</div>

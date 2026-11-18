@@ -3,59 +3,116 @@
     ViewData["Title"] = "Yeni Duyuru Ekle";
 }
 
+<style>
+    .create-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: var(--shadow-card);
+    }
+    .form-label-custom {
+        font-weight: 700;
+        font-size: 0.875rem;
+        color: var(--color-text-heading);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .form-control-custom, .form-select-custom {
+        border: 1.5px solid var(--color-border-subtle);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        color: var(--color-text-heading);
+        background-color: #FFFFFF;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .form-control-custom:focus, .form-select-custom:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px var(--color-primary-glow);
+        outline: none;
+    }
+</style>
+
 <div class="row justify-content-center">
     <div class="col-lg-8">
+        <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-4">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a asp-action="Index">Duyurular</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Yeni Duyuru</li>
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Ana Sayfa</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Announcements" asp-action="Index" class="text-decoration-none text-muted">Duyurular</a></li>
+                <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Yeni Duyuru Yayınla</li>
             </ol>
         </nav>
 
-        <div class="card p-5 bg-white border rounded-4 shadow-sm">
-            <h3 class="fw-bold text-dark mb-4">
-                <i class="fa-solid fa-pen-to-square text-primary me-2"></i> Yeni Duyuru Yayınla
-            </h3>
+        <!-- Form Card -->
+        <div class="create-card">
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                <div class="brand-icon-box" style="width: 44px; height: 44px; font-size: 1.15rem;">
+                    <i class="fa-solid fa-pen-nib"></i>
+                </div>
+                <div>
+                    <h2 class="h4 fw-bold text-dark mb-0">Yeni Duyuru Yayınla</h2>
+                    <p class="text-muted small mb-0">Topluluğa ulaştırmak istediğiniz etkinlik veya duyuru bilgilerini girin.</p>
+                </div>
+            </div>
 
             <form asp-action="Create" method="post">
-                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                <div asp-validation-summary="All" class="alert alert-danger rounded-3 py-2 small mb-4" style="display: @(ViewData.ModelState.IsValid ? "none" : "block")"></div>
 
+                <!-- Duyuru Başlığı -->
                 <div class="mb-3">
-                    <label asp-for="Title" class="form-label fw-bold">Duyuru Başlığı</label>
-                    <input asp-for="Title" class="form-control" placeholder="Örn: 2026 Mezunlar Zirvesi" required />
+                    <label asp-for="Title" class="form-label-custom">
+                        <i class="fa-solid fa-heading text-primary"></i> Duyuru Başlığı <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Title" class="form-control form-control-custom" placeholder="Örn: 2026 Bahar Mezunlar Buluşması & Kariyer Zirvesi" required />
+                    <div class="form-text small text-muted">Açık, anlaşılır ve dikkat çekici bir başlık belirleyin.</div>
                 </div>
 
                 <div class="row g-3 mb-3">
+                    <!-- Kategori -->
                     <div class="col-md-6">
-                        <label asp-for="Category" class="form-label fw-bold">Kategori</label>
-                        <select asp-for="Category" class="form-select">
-                            <option value="Genel">Genel</option>
-                            <option value="Etkinlik">Etkinlik</option>
-                            <option value="Kariyer">Kariyer</option>
-                            <option value="Akademik">Akademik</option>
+                        <label asp-for="Category" class="form-label-custom">
+                            <i class="fa-solid fa-tags text-primary"></i> Kategori <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Category" class="form-select form-select-custom">
+                            <option value="Genel">Genel Bilgilendirme</option>
+                            <option value="Etkinlik">Etkinlik & Buluşma</option>
+                            <option value="Kariyer">Kariyer & Staj</option>
+                            <option value="Akademik">Akademik Duyuru</option>
                         </select>
                     </div>
+
+                    <!-- Yayınlayan Birim -->
                     <div class="col-md-6">
-                        <label asp-for="Author" class="form-label fw-bold">Yayınlayan Birim / Kişi</label>
-                        <input asp-for="Author" class="form-control" placeholder="Örn: Kariyer Merkezi" />
+                        <label asp-for="Author" class="form-label-custom">
+                            <i class="fa-regular fa-user text-primary"></i> Yayınlayan Birim / Kişi
+                        </label>
+                        <input asp-for="Author" class="form-control form-control-custom" placeholder="Örn: Kariyer Merkezi, Rektörlük" />
                     </div>
                 </div>
 
+                <!-- İçerik -->
                 <div class="mb-4">
-                    <label asp-for="Content" class="form-label fw-bold">Duyuru İçeriği</label>
-                    <textarea asp-for="Content" rows="6" class="form-control" placeholder="Duyuru detaylarını buraya yazınız..." required></textarea>
+                    <label asp-for="Content" class="form-label-custom">
+                        <i class="fa-solid fa-align-left text-primary"></i> Duyuru İçeriği <span class="text-danger">*</span>
+                    </label>
+                    <textarea asp-for="Content" rows="7" class="form-control form-control-custom" placeholder="Duyurunun tüm detaylarını, tarih, yer veya katılım şartlarını buraya yazınız..." required></textarea>
+                    <div class="form-text small text-muted">Paragraflar arası boşluk bırakarak okunabilirliği artırabilirsiniz.</div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                    <a asp-action="Index" class="btn btn-outline-secondary">
+                <!-- Action Buttons -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center pt-3 border-top gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
                         <i class="fa-solid fa-xmark me-1"></i> İptal
                     </a>
-                    <button type="submit" class="btn btn-konekto px-4">
-                        <i class="fa-solid fa-paper-plane me-1"></i> Duyuruyu Yayınla
+                    <button type="submit" class="btn btn-konekto rounded-pill px-5 py-2">
+                        <i class="fa-solid fa-paper-plane me-2"></i> Duyuruyu Yayınla
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-

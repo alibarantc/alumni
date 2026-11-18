@@ -1,47 +1,137 @@
 @model IEnumerable<Announcement>
 @{
-    ViewData["Title"] = "Duyurular";
+    ViewData["Title"] = "Duyurular & Etkinlikler";
     var selectedCat = ViewBag.SelectedCategory as string ?? "Tümü";
     var categories = new[] { "Tümü", "Genel", "Etkinlik", "Kariyer", "Akademik" };
+    var totalCount = Model.Count();
 }
 
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-bold text-dark mb-1">
-            <i class="fa-solid fa-bullhorn text-primary me-2"></i> Duyurular
-        </h2>
-        <p class="text-muted mb-0">Üniversitemiz ve mezunlar topluluğundan güncel duyuru ve haberler</p>
-    </div>
-    <div class="mt-3 mt-md-0">
-        <a asp-action="Create" class="btn btn-konekto">
-            <i class="fa-solid fa-plus me-1"></i> Yeni Duyuru Ekle
-        </a>
+<style>
+    .page-header-box {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: var(--shadow-subtle);
+        position: relative;
+        overflow: hidden;
+    }
+    .page-header-box::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 180px;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(238, 242, 255, 0) 0%, rgba(238, 242, 255, 0.6) 100%);
+        pointer-events: none;
+    }
+    .category-pill {
+        border-radius: 50px;
+        padding: 8px 18px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .category-pill.active {
+        background-color: var(--color-primary);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+    .category-pill:not(.active) {
+        background-color: #ffffff;
+        color: var(--color-text-muted);
+        border: 1px solid var(--color-border-subtle);
+    }
+    .category-pill:not(.active):hover {
+        background-color: var(--color-primary-light);
+        color: var(--color-primary);
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+    .announcement-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 18px;
+        padding: 24px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .announcement-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 14px 28px -6px rgba(15, 23, 42, 0.08);
+        transform: translateY(-4px);
+    }
+</style>
+
+<!-- 1. PAGE HEADER BOX -->
+<div class="page-header-box mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <div class="d-inline-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1 rounded-pill">
+                    <i class="fa-solid fa-bullhorn me-1"></i> Haber Merkezi
+                </span>
+                <span class="text-muted small fw-medium">@totalCount Duyuru Listeleniyor</span>
+            </div>
+            <h1 class="h2 fw-bold text-dark mb-1" style="letter-spacing: -0.02em;">Üniversite & Mezun Duyuruları</h1>
+            <p class="text-muted small mb-0">Rektörlük, mezunlar derneği, kariyer merkezi ve kulüplerin resmi duyuruları.</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-konekto rounded-pill px-4 py-2">
+                <i class="fa-solid fa-plus me-1"></i> Yeni Duyuru Ekle
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- Kategori Filtresi -->
-<div class="d-flex flex-wrap gap-2 mb-4">
+<!-- 2. KATEGORİ FİLTRE PİLLERİ -->
+<div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
+    <span class="text-muted small fw-semibold me-2 d-none d-sm-inline">
+        <i class="fa-solid fa-filter me-1"></i> Kategori:
+    </span>
     @foreach (var cat in categories)
     {
         var isActive = selectedCat == cat;
         <a asp-action="Index" asp-route-category="@(cat == "Tümü" ? null : cat)" 
-           class="btn btn-sm @(isActive ? "btn-primary" : "btn-outline-secondary") rounded-pill px-3">
+           class="category-pill @(isActive ? "active" : "")">
+            @if (cat == "Tümü") { <i class="fa-solid fa-border-all"></i> }
+            else if (cat == "Genel") { <i class="fa-solid fa-globe"></i> }
+            else if (cat == "Etkinlik") { <i class="fa-regular fa-calendar-check"></i> }
+            else if (cat == "Kariyer") { <i class="fa-solid fa-briefcase"></i> }
+            else if (cat == "Akademik") { <i class="fa-solid fa-graduation-cap"></i> }
             @cat
         </a>
     }
 </div>
 
-<!-- Duyuru Listesi -->
+<!-- 3. DUYURU KARTLARI LİSTESİ -->
 <div class="row g-4">
     @if (!Model.Any())
     {
         <div class="col-12">
-            <div class="card p-5 text-center bg-white border rounded-4">
-                <i class="fa-regular fa-folder-open fa-3x text-muted mb-3"></i>
-                <h5 class="fw-bold text-dark">Bu kategoride henüz duyuru bulunmuyor.</h5>
-                <p class="text-muted">Farklı bir kategori seçebilir veya yeni bir duyuru ekleyebilirsiniz.</p>
-                <div class="mt-2">
-                    <a asp-action="Create" class="btn btn-primary btn-sm">İlk Duyuruyu Ekle</a>
+            <div class="card p-5 text-center bg-white border rounded-4 shadow-sm">
+                <div class="mb-3 text-muted">
+                    <i class="fa-regular fa-folder-open fa-3x text-primary opacity-75"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Bu Kategoride Duyuru Bulunamadı</h4>
+                <p class="text-muted small mb-4" style="max-width: 480px; margin: 0 auto;">
+                    Şu anda seçili filtreye uygun aktif duyuru bulunmamaktadır. Tüm duyuruları görüntüleyebilir veya yeni bir duyuru yayınlayabilirsiniz.
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fa-solid fa-border-all me-1"></i> Tümünü Göster
+                    </a>
+                    <a asp-action="Create" class="btn btn-konekto rounded-pill px-4">
+                        <i class="fa-solid fa-plus me-1"></i> İlk Duyuruyu Yayınla
+                    </a>
                 </div>
             </div>
         </div>
@@ -50,26 +140,47 @@
     {
         @foreach (var item in Model)
         {
+            var badgeClass = item.Category switch {
+                "Etkinlik" => "bg-warning-subtle text-warning",
+                "Kariyer" => "bg-success-subtle text-success",
+                "Akademik" => "bg-info-subtle text-info",
+                _ => "bg-primary-subtle text-primary"
+            };
+
             <div class="col-md-6 col-lg-4">
-                <div class="card card-custom h-100 p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-primary-subtle text-primary fw-bold">@item.Category</span>
-                        <small class="text-muted"><i class="fa-regular fa-calendar me-1"></i> @item.CreatedAt.ToString("dd MMM yyyy")</small>
-                    </div>
-                    <h5 class="card-title fw-bold text-dark mb-2">@item.Title</h5>
-                    <p class="card-text text-muted small flex-grow-1">
-                        @(item.Content.Length > 140 ? item.Content.Substring(0, 137) + "..." : item.Content)
-                    </p>
-                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-                        <small class="text-secondary">
-                            <i class="fa-regular fa-user me-1"></i> @item.Author
+                <div class="announcement-card">
+                    <!-- Üst Meta: Kategori & Tarih -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge @badgeClass fw-bold px-3 py-1 rounded-pill" style="font-size: 0.75rem;">
+                            @item.Category
+                        </span>
+                        <small class="text-muted">
+                            <i class="fa-regular fa-calendar me-1"></i> @item.CreatedAt.ToString("dd MMM yyyy")
                         </small>
-                        <div class="d-flex gap-2">
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
-                                Detay
+                    </div>
+
+                    <!-- Başlık & İçerik -->
+                    <h5 class="fw-bold text-dark mb-2" style="line-height: 1.35;">@item.Title</h5>
+                    <p class="text-secondary small flex-grow-1 mb-4" style="line-height: 1.6;">
+                        @(item.Content.Length > 135 ? item.Content.Substring(0, 132) + "..." : item.Content)
+                    </p>
+
+                    <!-- Alt Meta: Yazar & İşlem Butonları -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+                        <div class="d-flex align-items-center gap-2 text-muted small">
+                            <i class="fa-regular fa-circle-user text-primary"></i>
+                            <span class="fw-medium text-truncate" style="max-width: 140px;">@item.Author</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-konekto rounded-pill px-3">
+                                Detay <i class="fa-solid fa-chevron-right ms-1" style="font-size: 0.7rem;"></i>
                             </a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" onclick="return confirm('Bu duyuruyu silmek istediğinize emin misiniz?');" class="btn btn-sm btn-outline-danger">
-                                <i class="fa-solid fa-trash"></i>
+                            <a asp-action="Delete" asp-route-id="@item.Id" 
+                               onclick="return confirm('Bu duyuruyu silmek istediğinize emin misiniz?');" 
+                               class="btn btn-sm btn-outline-danger rounded-circle p-2 d-inline-flex align-items-center justify-content-center"
+                               style="width: 32px; height: 32px;"
+                               title="Duyuruyu Sil">
+                                <i class="fa-solid fa-trash" style="font-size: 0.75rem;"></i>
                             </a>
                         </div>
                     </div>
@@ -78,4 +189,3 @@
         }
     }
 </div>
-

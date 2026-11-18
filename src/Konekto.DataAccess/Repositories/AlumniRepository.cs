@@ -16,12 +16,16 @@ public class AlumniRepository : IAlumniRepository
 
     public async Task<IEnumerable<Alumni>> GetAllAsync()
     {
-        return await _context.Alumni.ToListAsync();
+        return await _context.Alumni
+            .Include(a => a.Department)
+            .ToListAsync();
     }
 
     public async Task<Alumni?> GetByIdAsync(int id)
     {
-        return await _context.Alumni.FindAsync(id);
+        return await _context.Alumni
+            .Include(a => a.Department)
+            .FirstOrDefaultAsync(a => a.Id == id);
     }
 
     public async Task<Alumni> AddAsync(Alumni alumni)
@@ -56,4 +60,3 @@ public class AlumniRepository : IAlumniRepository
         return true;
     }
 }
-

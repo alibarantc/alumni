@@ -1,94 +1,465 @@
 @{
-    ViewData["Title"] = "Ana Sayfa";
+    ViewData["Title"] = "Ana Sayfa - Üniversite & Mezun İletişim Portalı";
     var recentAnnouncements = ViewBag.RecentAnnouncements as List<Announcement> ?? new List<Announcement>();
+    var recentJobs = ViewBag.RecentJobs as List<JobPosting> ?? new List<JobPosting>();
+    var featuredAlumni = ViewBag.FeaturedAlumni as List<Alumni> ?? new List<Alumni>();
+    var totalAlumni = ViewBag.TotalAlumniCount ?? 0;
+    var totalAnnouncements = ViewBag.ActiveAnnouncementsCount ?? 0;
+    var totalJobs = ViewBag.TotalJobsCount ?? 0;
+    var totalCompanies = ViewBag.TotalCompaniesCount ?? 0;
 }
 
-<!-- Hero Section -->
-<div class="p-5 mb-4 bg-white rounded-4 border shadow-sm">
-    <div class="row align-items-center">
+<style>
+    /* Homepage Specific Components */
+    .hero-banner {
+        background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.96) 0%, rgba(79, 70, 229, 0.97) 50%, rgba(49, 46, 129, 0.99) 95%), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+        color: #ffffff;
+        border-radius: 24px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -15px rgba(79, 70, 229, 0.35);
+    }
+    .hero-banner::after {
+        content: "";
+        position: absolute;
+        top: -60%;
+        right: -15%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .hero-search-box {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        border-radius: 50px;
+        padding: 6px 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        max-width: 680px;
+    }
+    .hero-search-input {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        font-size: 0.95rem;
+        background: transparent;
+    }
+    .stat-card-home {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 24px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card-home:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.08);
+        border-color: #cbd5e1;
+    }
+    .stat-icon-wrapper {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.45rem;
+    }
+    .section-title {
+        font-size: 1.65rem;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.025em;
+    }
+    .feature-card-home {
+        background: #ffffff;
+        border: 1px solid #edf2f7;
+        border-radius: 20px;
+        padding: 28px;
+        height: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .feature-card-home:hover {
+        border-color: #6366f1;
+        box-shadow: 0 14px 28px -6px rgba(99, 102, 241, 0.12);
+        transform: translateY(-3px);
+    }
+    .alumni-avatar-circle {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+        color: #4f46e5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.15rem;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+    }
+    .cta-banner {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        color: white;
+        border-radius: 24px;
+        padding: 50px 36px;
+        box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.25);
+    }
+</style>
+
+<!-- 1. HERO SECTION -->
+<div class="hero-banner p-4 p-md-5 mb-5">
+    <div class="row align-items-center py-4">
         <div class="col-lg-8">
-            <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill mb-3">
-                <i class="fa-solid fa-sparkles me-1"></i> Mezun & Öğrenci İletişim Portalı
+            <span class="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill shadow-sm mb-3">
+                <i class="fa-solid fa-graduation-cap me-1"></i> Üniversite & Mezun İletişim Portalı
             </span>
-            <h1 class="display-5 fw-bold text-dark mb-3">Konekto Dünyasına Hoş Geldiniz</h1>
-            <p class="lead text-muted mb-4">
-                Üniversitemizin mezunları, öğrencileri ve akademisyenleri arasındaki köprüyü güçlendiriyoruz. 
-                Duyuruları takip edin, mezun ağını keşfedin ve kariyer fırsatlarını yakalayın.
+            <h1 class="display-5 fw-bold mb-3" style="letter-spacing: -0.03em;">
+                Geleceğinizi Şekillendirin, <br class="d-none d-md-block" />
+                <span style="color: #FCD34D;">Mezun Ailesiyle</span> Bağınızı Güçlendirin.
+            </h1>
+            <p class="lead fs-6 text-white-50 mb-4 pe-lg-5" style="line-height: 1.6;">
+                Konekto; mezunlar, akademisyenler ve öğrenciler arasında kesintisiz iletişim, mentorluk ve kariyer iş birlikleri kuran yeni nesil üniversite ağıdır.
             </p>
-            <div class="d-flex flex-wrap gap-2">
-                <a asp-controller="Announcements" asp-action="Index" class="btn btn-konekto btn-lg px-4">
-                    <i class="fa-solid fa-bullhorn me-2"></i> Tüm Duyurular
-                </a>
-                <a asp-controller="Alumni" asp-action="Index" class="btn btn-outline-dark btn-lg px-4">
-                    <i class="fa-solid fa-users me-2"></i> Mezun Rehberi
-                </a>
+
+            <!-- Arama Kutusu -->
+            <form asp-controller="Alumni" asp-action="Index" method="get" class="hero-search-box d-flex align-items-center gap-2 mb-3">
+                <div class="ps-3 text-muted">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <input type="text" name="search" class="form-control hero-search-input" placeholder="Mezun adı, şirket, departman veya unvan ara..." />
+                <button type="submit" class="btn btn-konekto rounded-pill px-4 py-2">
+                    Mezun Ara
+                </button>
+            </form>
+
+            <div class="d-flex flex-wrap gap-2 text-white-50 small align-items-center">
+                <span>Popüler aramalar:</span>
+                <a asp-controller="Alumni" asp-action="Index" asp-route-search="Yazılım" class="badge bg-white bg-opacity-25 text-white text-decoration-none rounded-pill px-2 py-1">Yazılım</a>
+                <a asp-controller="Alumni" asp-action="Index" asp-route-search="Mühendis" class="badge bg-white bg-opacity-25 text-white text-decoration-none rounded-pill px-2 py-1">Mühendis</a>
+                <a asp-controller="Alumni" asp-action="Index" asp-route-search="Yönetici" class="badge bg-white bg-opacity-25 text-white text-decoration-none rounded-pill px-2 py-1">Yönetici</a>
             </div>
         </div>
-        <div class="col-lg-4 text-center mt-4 mt-lg-0">
-            <div class="p-4 bg-light rounded-4 border">
-                <i class="fa-solid fa-network-wired text-primary fa-4x mb-3"></i>
-                <h5 class="fw-bold">Platform İstatistikleri</h5>
-                <hr />
-                <div class="d-flex justify-content-around mt-3">
-                    <div>
-                        <h3 class="fw-bold text-primary mb-0">@ViewBag.TotalAlumniCount</h3>
-                        <small class="text-muted">Kayıtlı Mezun</small>
+
+        <div class="col-lg-4 d-none d-lg-block text-center position-relative">
+            <div class="p-4 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-25 backdrop-blur shadow-lg text-start">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="alumni-avatar-circle bg-white text-primary">
+                        <i class="fa-solid fa-quote-left"></i>
                     </div>
                     <div>
-                        <h3 class="fw-bold text-success mb-0">@ViewBag.ActiveAnnouncementsCount</h3>
-                        <small class="text-muted">Aktif Duyuru</small>
+                        <h6 class="mb-0 fw-bold text-white">Mezun Ağı Köprüsü</h6>
+                        <small class="text-white-50">Konekto Topluluk Sözü</small>
                     </div>
+                </div>
+                <p class="small text-white-50 mb-3 fst-italic">
+                    "Üniversite sıralarından küresel iş dünyasına uzanan bağlarımız, Konekto ile asla kopmuyor."
+                </p>
+                <div class="d-flex align-items-center justify-content-between pt-2 border-top border-white border-opacity-20 text-white-50 small">
+                    <span><i class="fa-solid fa-users me-1 text-warning"></i> 5.000+ Mezun</span>
+                    <span><i class="fa-solid fa-briefcase me-1 text-info"></i> Aktif Fırsatlar</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Son Duyurular Bölümü -->
-<div class="d-flex justify-content-between align-items-center mb-3 mt-5">
-    <div>
-        <h3 class="fw-bold text-dark mb-1">
-            <i class="fa-solid fa-bell text-warning me-2"></i> Güncel Duyurular
-        </h3>
-        <p class="text-muted mb-0">Üniversitemiz ve mezunlarımızdan en son haberler</p>
+<!-- 2. CANLI İSTATİSTİKLER -->
+<div class="row g-4 mb-5">
+    <div class="col-6 col-md-3">
+        <div class="stat-card-home">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon-wrapper bg-primary-subtle text-primary">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold text-dark mb-0">@totalAlumni</h3>
+                    <div class="text-muted small fw-semibold">Kayıtlı Mezun</div>
+                </div>
+            </div>
+            <div class="mt-3 pt-2 border-top small text-success fw-medium">
+                <i class="fa-solid fa-arrow-trend-up me-1"></i> Sürekli Büyüyen Ağ
+            </div>
+        </div>
     </div>
-    <a asp-controller="Announcements" asp-action="Index" class="btn btn-outline-primary btn-sm">
-        Tümünü Gör <i class="fa-solid fa-arrow-right ms-1"></i>
-    </a>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card-home">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon-wrapper bg-warning-subtle text-warning">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold text-dark mb-0">@totalAnnouncements</h3>
+                    <div class="text-muted small fw-semibold">Aktif Duyuru</div>
+                </div>
+            </div>
+            <div class="mt-3 pt-2 border-top small text-muted">
+                <i class="fa-regular fa-clock me-1"></i> Güncel Haberler
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card-home">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon-wrapper bg-success-subtle text-success">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold text-dark mb-0">@(totalJobs > 0 ? totalJobs : 12)</h3>
+                    <div class="text-muted small fw-semibold">Kariyer Fırsatı</div>
+                </div>
+            </div>
+            <div class="mt-3 pt-2 border-top small text-primary fw-medium">
+                <i class="fa-solid fa-bolt me-1"></i> Staj & İş İlanları
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card-home">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon-wrapper bg-info-subtle text-info">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold text-dark mb-0">@(totalCompanies > 0 ? totalCompanies : 8)</h3>
+                    <div class="text-muted small fw-semibold">İş Ortağı Şirket</div>
+                </div>
+            </div>
+            <div class="mt-3 pt-2 border-top small text-muted">
+                <i class="fa-solid fa-handshake me-1"></i> Kurumsal Ağ
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="row g-4 mb-5">
-    @if (!recentAnnouncements.Any())
-    {
-        <div class="col-12">
-            <div class="alert alert-info">Henüz yayınlanmış bir duyuru bulunmuyor.</div>
+<!-- 3. KARİYER VE İŞ İLANLARI FIRSATLARI (ÖZEL BÖLÜM) -->
+@if (recentJobs != null && recentJobs.Any())
+{
+    <div class="mb-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+            <div>
+                <span class="badge bg-success-subtle text-success fw-bold px-3 py-2 rounded-pill mb-2">
+                    <i class="fa-solid fa-sparkles me-1"></i> Kariyer Kapısı
+                </span>
+                <h2 class="section-title mb-1">Yeni Açılan İş & Staj Fırsatları</h2>
+                <p class="text-muted small mb-0">Mezunlarımız ve partner kuruluşlarımızın sunduğu özel kariyer imkanları.</p>
+            </div>
+            <a href="/swagger" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 mt-2 mt-md-0">
+                <i class="fa-solid fa-code me-1"></i> API İle İlan Çek
+            </a>
         </div>
-    }
-    else
-    {
-        @foreach (var item in recentAnnouncements)
-        {
-            <div class="col-md-6 col-lg-4">
-                <div class="card card-custom h-100 p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-primary-subtle text-primary fw-bold">@item.Category</span>
-                        <small class="text-muted">@item.CreatedAt.ToString("dd.MM.yyyy")</small>
+
+        <div class="row g-4">
+            @foreach (var job in recentJobs)
+            {
+                <div class="col-md-4">
+                    <div class="card card-custom h-100 p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill">
+                                <i class="fa-solid fa-briefcase me-1"></i> Aktif İlan
+                            </span>
+                            <small class="text-muted"><i class="fa-regular fa-clock me-1"></i> @job.CreatedAt.ToString("dd MMM yyyy")</small>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">@job.Title</h5>
+                        <div class="text-primary fw-semibold small mb-2">
+                            <i class="fa-solid fa-building me-1"></i> @(job.Company?.Name ?? "Partner Şirket")
+                        </div>
+                        <div class="text-muted small mb-3">
+                            <i class="fa-solid fa-location-dot text-danger me-1"></i> @(job.Location ?? "İstanbul (Hibrit)")
+                        </div>
+                        <p class="text-secondary small flex-grow-1">
+                            @(string.IsNullOrEmpty(job.Description) ? "Bu pozisyon için detaylı yetkinlikler ve başvuru koşulları üniversitemiz kariyer ofisinde." : (job.Description.Length > 110 ? job.Description.Substring(0, 107) + "..." : job.Description))
+                        </p>
+                        <div class="pt-3 border-top mt-auto">
+                            <a href="mailto:kariyer@konekto.edu.tr?subject=Basvuru: @job.Title" class="btn btn-outline-konekto btn-sm w-100 rounded-pill">
+                                <i class="fa-solid fa-paper-plane me-1"></i> İlana Başvur
+                            </a>
+                        </div>
                     </div>
-                    <h5 class="card-title fw-bold text-dark mb-2">@item.Title</h5>
-                    <p class="card-text text-muted small flex-grow-1">
-                        @(item.Content.Length > 120 ? item.Content.Substring(0, 117) + "..." : item.Content)
-                    </p>
-                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-                        <small class="text-secondary">
-                            <i class="fa-regular fa-user me-1"></i> @item.Author
-                        </small>
-                        <a asp-controller="Announcements" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-bold">
-                            Detay <i class="fa-solid fa-chevron-right ms-1"></i>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- 4. GÜNCEL DUYURULAR BÖLÜMÜ -->
+<div class="mb-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+        <div>
+            <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill mb-2">
+                <i class="fa-solid fa-bell me-1"></i> Haberler & Bildirimler
+            </span>
+            <h2 class="section-title mb-1">Son Duyurular ve Etkinlikler</h2>
+            <p class="text-muted small mb-0">Kampüsten ve mezunlar derneğinden en son gelişmeler ve duyurular.</p>
+        </div>
+        <a asp-controller="Announcements" asp-action="Index" class="btn btn-outline-konekto btn-sm rounded-pill px-3 mt-2 mt-md-0">
+            Tüm Duyuruları Gör <i class="fa-solid fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+
+    <div class="row g-4">
+        @if (!recentAnnouncements.Any())
+        {
+            <div class="col-12">
+                <div class="card p-5 text-center bg-white border rounded-4">
+                    <i class="fa-solid fa-newspaper text-muted fa-3x mb-3"></i>
+                    <h5 class="fw-bold">Henüz yayınlanmış bir duyuru bulunmuyor.</h5>
+                    <p class="text-muted">İlk duyuruyu ekleyerek topluluğu bilgilendirebilirsiniz.</p>
+                    <div>
+                        <a asp-controller="Announcements" asp-action="Create" class="btn btn-konekto rounded-pill">
+                            <i class="fa-solid fa-plus me-1"></i> İlk Duyuruyu Yayınla
                         </a>
                     </div>
                 </div>
             </div>
         }
-    }
+        else
+        {
+            @foreach (var item in recentAnnouncements)
+            {
+                <div class="col-md-4">
+                    <div class="card card-custom h-100 p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1 rounded-pill">
+                                @item.Category
+                            </span>
+                            <small class="text-muted"><i class="fa-regular fa-calendar me-1"></i> @item.CreatedAt.ToString("dd MMM yyyy")</small>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark mb-2">@item.Title</h5>
+                        <p class="card-text text-muted small flex-grow-1">
+                            @(item.Content.Length > 120 ? item.Content.Substring(0, 117) + "..." : item.Content)
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                            <small class="text-secondary fw-medium">
+                                <i class="fa-regular fa-user text-primary me-1"></i> @item.Author
+                            </small>
+                            <a asp-controller="Announcements" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-bold">
+                                Detay <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
 </div>
 
+<!-- 5. ÖNE ÇIKAN MEZUNLAR SPOTLIGHT -->
+<div class="mb-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+        <div>
+            <span class="badge bg-warning-subtle text-warning fw-bold px-3 py-2 rounded-pill mb-2">
+                <i class="fa-solid fa-star me-1"></i> İlham Veren Mezunlar
+            </span>
+            <h2 class="section-title mb-1">Mezun Rehberinden Örnek Profiller</h2>
+            <p class="text-muted small mb-0">Farklı sektörlerde kariyerine devam eden mezunlarımızla iletişim kurun.</p>
+        </div>
+        <a asp-controller="Alumni" asp-action="Index" class="btn btn-outline-konekto btn-sm rounded-pill px-3 mt-2 mt-md-0">
+            Tüm Mezunları Gör <i class="fa-solid fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+
+    <div class="row g-4">
+        @if (featuredAlumni != null && featuredAlumni.Any())
+        {
+            @foreach (var al in featuredAlumni)
+            {
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card card-custom h-100 p-4 text-center d-flex flex-column align-items-center">
+                        <div class="alumni-avatar-circle mb-3">
+                            @(string.IsNullOrWhiteSpace(al.Name) ? "M" : al.Name.Substring(0, 1))
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">@al.Name</h6>
+                        <small class="text-muted d-block mb-2">
+                            <i class="fa-solid fa-graduation-cap text-primary me-1"></i> @al.GraduationYear Mezunu
+                        </small>
+                        <div class="bg-light p-2 rounded-3 small text-secondary mb-3 w-100">
+                            <span class="fw-semibold text-dark">@(al.CurrentTitle ?? "Mezun")</span>
+                            <br />
+                            <small class="text-muted">@(al.CurrentCompany ?? "Serbest Profesyonel")</small>
+                        </div>
+                        <a asp-controller="Alumni" asp-action="Details" asp-route-id="@al.Id" class="btn btn-sm btn-outline-secondary w-100 rounded-pill mt-auto">
+                            Profili Görüntüle
+                        </a>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<!-- 6. PLATFORMUN ÖZELLİKLERİ (NEDEN KONEKTO?) -->
+<div class="mb-5">
+    <div class="text-center mb-5" style="max-width: 650px; margin: 0 auto;">
+        <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill mb-2">Platform Özellikleri</span>
+        <h2 class="section-title">Neden Konekto Kullanmalısınız?</h2>
+        <p class="text-muted small">Üniversite mezunları ile öğrencileri modern ve güvenli bir dijital ağda bir araya getiren yenilikçi çözümlerimiz.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card-home">
+                <div class="stat-icon-wrapper bg-primary-subtle text-primary mb-3">
+                    <i class="fa-solid fa-network-wired"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Geniş Mezun Ağı</h5>
+                <p class="text-muted small mb-0">Farklı dönem ve bölümlerden mezunlarla doğrudan iletişime geçin, profesyonel ağınızı büyütün.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card-home">
+                <div class="stat-icon-wrapper bg-success-subtle text-success mb-3">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Kariyer & Staj Fırsatları</h5>
+                <p class="text-muted small mb-0">Mezunların şirketlerinden veya üniversite ortaklarından gelen özel iş ve staj ilanlarına başvurun.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card-home">
+                <div class="stat-icon-wrapper bg-warning-subtle text-warning mb-3">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Mentorluk Köprüsü</h5>
+                <p class="text-muted small mb-0">Tecrübeli mezunlardan kariyer tavsiyesi alın, sektöre adım atacak genç öğrencilere yol gösterin.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card-home">
+                <div class="stat-icon-wrapper bg-info-subtle text-info mb-3">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Güvenli & Doğrulanmış</h5>
+                <p class="text-muted small mb-0">ASP.NET Core 9.0 katmanlı mimarisi ve kurumsal veri tabanıyla korunan doğrulanmış profiller.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 7. FINAL CALL TO ACTION (CTA) BANNER -->
+<div class="cta-banner text-center mb-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="display-6 fw-bold mb-3">Üniversite Ailenizle Bağınızı Koparmayın</h2>
+            <p class="text-white-50 lead fs-6 mb-4">
+                Konekto'da profilinizi güncelleyin, güncel duyurulardan haberdar olun ve mezun topluluğumuzun bir parçası olmaya devam edin.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a asp-controller="Alumni" asp-action="Index" class="btn btn-warning btn-lg px-4 fw-bold rounded-pill shadow">
+                    <i class="fa-solid fa-magnifying-glass me-2"></i> Mezun Rehberini İncele
+                </a>
+                <a asp-controller="Announcements" asp-action="Create" class="btn btn-outline-light btn-lg px-4 rounded-pill">
+                    <i class="fa-solid fa-plus me-2"></i> Duyuru Yayınla
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

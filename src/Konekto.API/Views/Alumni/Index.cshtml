@@ -2,46 +2,133 @@
 @{
     ViewData["Title"] = "Mezun Rehberi";
     var search = ViewBag.SearchTerm as string;
+    var totalAlumni = Model.Count();
 }
 
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-bold text-dark mb-1">
-            <i class="fa-solid fa-users text-primary me-2"></i> Mezun Rehberi
-        </h2>
-        <p class="text-muted mb-0">Üniversitemizin başarılı mezunlarını keşfedin ve iletişime geçin</p>
+<style>
+    .alumni-header-box {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: var(--shadow-subtle);
+        position: relative;
+        overflow: hidden;
+    }
+    .alumni-header-box::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 180px;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(238, 242, 255, 0) 0%, rgba(238, 242, 255, 0.6) 100%);
+        pointer-events: none;
+    }
+    .search-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: var(--shadow-subtle);
+    }
+    .alumni-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 20px;
+        padding: 24px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .alumni-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 14px 28px -6px rgba(15, 23, 42, 0.08);
+        transform: translateY(-4px);
+    }
+    .alumni-avatar-lg {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #EEF2FF 0%, #C7D2FE 100%);
+        color: #4F46E5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.3rem;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+        flex-shrink: 0;
+    }
+    .career-box {
+        background-color: #F8FAFC;
+        border: 1px solid #F1F5F9;
+        border-radius: 12px;
+        padding: 12px;
+    }
+</style>
+
+<!-- 1. HEADER SECTION -->
+<div class="alumni-header-box mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <div class="d-inline-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1 rounded-pill">
+                    <i class="fa-solid fa-users me-1"></i> Mezun Ağı
+                </span>
+                <span class="text-muted small fw-medium">@totalAlumni Mezun Listeleniyor</span>
+            </div>
+            <h1 class="h2 fw-bold text-dark mb-1" style="letter-spacing: -0.02em;">Üniversite Mezun Rehberi</h1>
+            <p class="text-muted small mb-0">Mezunlarımızın kariyer yolculuklarını keşfedin, iletişime geçin ve profesyonel ağınızı genişletin.</p>
+        </div>
     </div>
 </div>
 
-<!-- Arama Çubuğu -->
-<div class="card p-4 bg-white border rounded-4 shadow-sm mb-4">
+<!-- 2. ARAMA VE FİLTRE KARTI -->
+<div class="search-card mb-4">
     <form asp-action="Index" method="get" class="row g-2 align-items-center">
-        <div class="col-md-9">
+        <div class="col-md-9 col-lg-10">
             <div class="input-group">
-                <span class="input-group-text bg-light border-end-0">
+                <span class="input-group-text bg-white border-end-0 ps-3">
                     <i class="fa-solid fa-magnifying-glass text-muted"></i>
                 </span>
-                <input type="text" name="search" value="@search" class="form-control border-start-0" placeholder="Mezun adı, şirket veya pozisyona göre ara..." />
+                <input type="text" name="search" value="@search" class="form-control border-start-0 py-2" placeholder="Mezun adı, şirket, unvan veya uzmanlık ara..." />
             </div>
         </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-konekto w-100">Ara</button>
+        <div class="col-md-3 col-lg-2 d-flex gap-2">
+            <button type="submit" class="btn btn-konekto w-100 rounded-pill py-2">
+                <i class="fa-solid fa-magnifying-glass me-1"></i> Ara
+            </button>
             @if (!string.IsNullOrWhiteSpace(search))
             {
-                <a asp-action="Index" class="btn btn-outline-secondary">Temizle</a>
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 py-2" title="Filtreyi Temizle">
+                    <i class="fa-solid fa-xmark"></i>
+                </a>
             }
         </div>
     </form>
 </div>
 
-<!-- Mezun Kartları -->
+<!-- 3. MEZUN KARTLARI GRİDİ -->
 <div class="row g-4">
     @if (!Model.Any())
     {
         <div class="col-12">
-            <div class="alert alert-light border p-4 text-center">
-                <i class="fa-solid fa-user-slash text-muted fa-2x mb-2"></i>
-                <h6 class="fw-bold">Aranan kriterlere uygun mezun bulunamadı.</h6>
+            <div class="card p-5 text-center bg-white border rounded-4 shadow-sm">
+                <div class="mb-3 text-muted">
+                    <i class="fa-solid fa-user-slash fa-3x text-primary opacity-75"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Aranan Kriterlere Uygun Mezun Bulunamadı</h4>
+                <p class="text-muted small mb-4" style="max-width: 480px; margin: 0 auto;">
+                    "<strong>@search</strong>" aramasıyla eşleşen mezun kaydı bulunamadı. Lütfen farklı anahtar kelimeler deneyiniz.
+                </p>
+                <div>
+                    <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fa-solid fa-rotate-left me-1"></i> Filtreyi Temizle ve Tümünü Gör
+                    </a>
+                </div>
             </div>
         </div>
     }
@@ -50,36 +137,48 @@
         @foreach (var item in Model)
         {
             <div class="col-md-6 col-lg-4">
-                <div class="card card-custom h-100 p-4">
+                <div class="alumni-card">
+                    <!-- Avatar & İsim -->
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                        <div class="alumni-avatar-lg">
                             @(string.IsNullOrWhiteSpace(item.Name) ? "M" : item.Name.Substring(0, 1))
                         </div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">@item.Name</h5>
-                            <span class="badge bg-secondary-subtle text-secondary small">
-                                <i class="fa-solid fa-graduation-cap me-1"></i> @item.GraduationYear Mezunu
+                        <div class="flex-grow-1 overflow-hidden">
+                            <h5 class="fw-bold text-dark mb-1 text-truncate">@item.Name</h5>
+                            <span class="badge bg-secondary-subtle text-secondary small rounded-pill">
+                                <i class="fa-solid fa-graduation-cap text-primary me-1"></i> @item.GraduationYear Mezunu
                             </span>
                         </div>
                     </div>
 
-                    <div class="mb-3 text-muted small">
-                        <div class="mb-1">
-                            <i class="fa-solid fa-briefcase text-secondary me-2"></i>
+                    <!-- Pozisyon & Şirket Bilgi Kutusu -->
+                    <div class="career-box mb-3">
+                        <div class="text-dark fw-semibold small mb-1 text-truncate">
+                            <i class="fa-solid fa-briefcase text-primary me-2"></i>
                             @(string.IsNullOrWhiteSpace(item.CurrentTitle) ? "Pozisyon Belirtilmedi" : item.CurrentTitle)
                         </div>
-                        <div>
+                        <div class="text-muted small text-truncate">
                             <i class="fa-solid fa-building text-secondary me-2"></i>
                             @(string.IsNullOrWhiteSpace(item.CurrentCompany) ? "Şirket Belirtilmedi" : item.CurrentCompany)
                         </div>
                     </div>
 
-                    <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
-                        <small class="text-muted">@(item.Department?.Name ?? "Bölüm Bilgisi Yok")</small>
+                    <!-- Bölüm Bilgisi -->
+                    <div class="small text-muted mb-3">
+                        <i class="fa-solid fa-book-open-reader me-1 text-muted"></i>
+                        <span>@(item.Department?.Name ?? "Bölüm Bilgisi Eklenmedi")</span>
+                    </div>
+
+                    <!-- Alt Butonlar -->
+                    <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center gap-2">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-konekto rounded-pill px-3 flex-grow-1">
+                            Profili Görüntüle <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+
                         @if (!string.IsNullOrWhiteSpace(item.LinkedInUrl))
                         {
-                            <a href="@item.LinkedInUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                                <i class="fa-brands fa-linkedin"></i>
+                            <a href="@item.LinkedInUrl" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="LinkedIn Profili">
+                                <i class="fa-brands fa-linkedin-in"></i>
                             </a>
                         }
                     </div>
@@ -88,4 +187,3 @@
         }
     }
 </div>
-

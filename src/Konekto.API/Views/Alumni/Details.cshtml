@@ -1,0 +1,186 @@
+@model Alumni
+@{
+    ViewData["Title"] = $"{Model.Name} - Mezun Profili";
+}
+
+<style>
+    .profile-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 24px;
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+    }
+    .profile-cover {
+        height: 140px;
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #3B82F6 100%);
+        position: relative;
+    }
+    .profile-avatar-wrapper {
+        margin-top: -65px;
+        padding: 0 36px;
+    }
+    .profile-avatar-xl {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #EEF2FF 0%, #C7D2FE 100%);
+        color: #4F46E5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 2.5rem;
+        border: 4px solid #ffffff;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+    .info-card {
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        padding: 24px;
+        height: 100%;
+    }
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--color-text-muted);
+        margin-bottom: 4px;
+    }
+    .info-value {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--color-text-heading);
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-9">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Ana Sayfa</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Alumni" asp-action="Index" class="text-decoration-none text-muted">Mezun Rehberi</a></li>
+                <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">@Model.Name</li>
+            </ol>
+        </nav>
+
+        <!-- Main Profile Card -->
+        <div class="profile-card mb-4">
+            <div class="profile-cover"></div>
+
+            <div class="profile-avatar-wrapper d-flex flex-wrap justify-content-between align-items-end gap-3 pb-4">
+                <div class="d-flex flex-wrap align-items-end gap-3">
+                    <div class="profile-avatar-xl">
+                        @(string.IsNullOrWhiteSpace(Model.Name) ? "M" : Model.Name.Substring(0, 1))
+                    </div>
+                    <div class="pt-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <h2 class="h3 fw-bold text-dark mb-0">@Model.Name</h2>
+                            <i class="fa-solid fa-circle-check text-primary fs-5" title="Doğrulanmış Üniversite Mezunu"></i>
+                        </div>
+                        <p class="text-muted mb-0 small">
+                            <i class="fa-solid fa-graduation-cap text-primary me-1"></i> @Model.GraduationYear Mezunu
+                            <span class="mx-1">•</span>
+                            <span>@(Model.Department?.Name ?? "Bölüm Bilgisi")</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 pb-2">
+                    @if (!string.IsNullOrWhiteSpace(Model.LinkedInUrl))
+                    {
+                        <a href="@Model.LinkedInUrl" target="_blank" class="btn btn-primary rounded-pill px-4">
+                            <i class="fa-brands fa-linkedin-in me-1"></i> LinkedIn'de Bağlan
+                        </a>
+                    }
+                    <a href="mailto:info@konekto.edu.tr?subject=Mezun Iletisimi: @Model.Name" class="btn btn-outline-secondary rounded-pill px-3">
+                        <i class="fa-regular fa-envelope me-1"></i> Mesaj Gönder
+                    </a>
+                </div>
+            </div>
+
+            <!-- Profile Details Body -->
+            <div class="p-4 pt-0">
+                <div class="row g-4 mb-4">
+                    <!-- Kariyer Bilgisi -->
+                    <div class="col-md-6">
+                        <div class="info-card">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <div class="brand-icon-box" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                    <i class="fa-solid fa-briefcase"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0 fs-6">Kariyer & İstihdam</h5>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="info-label">Mevcut Pozisyon / Unvan</div>
+                                <div class="info-value">@(string.IsNullOrWhiteSpace(Model.CurrentTitle) ? "Belirtilmedi" : Model.CurrentTitle)</div>
+                            </div>
+
+                            <div>
+                                <div class="info-label">Çalıştığı Kurum / Şirket</div>
+                                <div class="info-value">
+                                    <i class="fa-solid fa-building text-secondary me-1"></i>
+                                    @(string.IsNullOrWhiteSpace(Model.CurrentCompany) ? "Belirtilmedi" : Model.CurrentCompany)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Akademik Bilgi -->
+                    <div class="col-md-6">
+                        <div class="info-card">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <div class="brand-icon-box" style="width: 32px; height: 32px; font-size: 0.85rem; background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0 fs-6">Akademik Bilgiler</h5>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="info-label">Bölüm / Program</div>
+                                <div class="info-value">@(Model.Department?.Name ?? "Üniversite Bölümü")</div>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="info-label">Mezuniyet Yılı</div>
+                                    <div class="info-value">@Model.GraduationYear</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="info-label">Derece Tipi</div>
+                                    <div class="info-value">@(Model.DegreeType ?? "Lisans")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bio & Hakkında -->
+                <div class="p-4 bg-light rounded-4 border mb-4">
+                    <h6 class="fw-bold text-dark mb-2">
+                        <i class="fa-solid fa-user-tag text-primary me-2"></i> Mezun Hakkında
+                    </h6>
+                    <p class="text-secondary small mb-0 leading-relaxed">
+                        @(string.IsNullOrWhiteSpace(Model.Bio) 
+                            ? $"{Model.Name}, {Model.GraduationYear} senesinde üniversitemizden mezun olmuştur. Kariyerine {Model.CurrentCompany ?? "sektörün öncü kuruluşlarında"} {Model.CurrentTitle ?? "uzman"} olarak devam etmektedir. Öğrencilerimiz ve diğer mezunlarımız ile mentorluk ve sektörel iş birliklerine açıktır." 
+                            : Model.Bio)
+                    </p>
+                </div>
+
+                <!-- Back Link -->
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fa-solid fa-arrow-left me-2"></i> Mezun Rehberine Dön
+                    </a>
+                    <span class="text-muted small">
+                        <i class="fa-solid fa-shield-check text-success me-1"></i> Konekto Doğrulanmış Profil
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
