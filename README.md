@@ -2,6 +2,23 @@
 
 Welcome to **Konekto**, an enterprise university communication and alumni tracking platform designed to bridge the gap between universities, graduates, and current students.
 
+> 📚 **Temel Proje Dokümantasyonu & Hızlı Erişim Bağlantıları:**  
+> • 📊 **[Veri Tasarım Dokümanı (ddd.md)](./ddd.md)** — *Veritabanı şeması, ER diyagramları ve normalizasyon kuralları*  
+> • 🎨 **[Marka ve Görsel Kimlik Kılavuzu (brand.md)](./brand.md)** — *Marka hikayesi, renk paleti, tipografi ve logo standartları*  
+> • 📐 **[Tasarım Sistemi Spesifikasyonu (DESIGN.md)](./DESIGN.md)** — *VoltAgent & Refero formatında AI ve geliştirici tasarım sistemi*  
+> • 🔌 **[Swagger API Arayüzü](http://localhost:5100/swagger)** — *REST API interaktif test dokümantasyonu*
+
+---
+
+## 📑 İçindekiler
+* [🚀 Proje Özellikleri ve Mimarisi](#-4-hafta-proje-özellikleri-ve-mimarisi)
+* [📊 Data Design Documentation (ddd.md)](#-data-design-documentation-ddd)
+* [🎨 Marka ve Görsel Kimlik Dokümantasyonu (brand.md)](#-marka-ve-görsel-kimlik-dokümantasyonu-brand-guidelines)
+* [📐 Tasarım Sistemi Spesifikasyonu (DESIGN.md)](#-tasarım-sistemi-spesifikasyonu-designmd)
+* [🛠️ Teknoloji Yığını](#️-teknoloji-yığını)
+* [📂 Dizin Yapısı](#-dizin-yapısı)
+* [⚙️ Kurulum ve Çalıştırma](#️-kurulum-ve-çalıştırma)
+
 ---
 
 ## 🚀 4. Hafta Proje Özellikleri ve Mimarisi

@@ -224,3 +224,11 @@ When an AI agent (Cursor, Claude, Copilot) is tasked with creating new pages or 
 3. **Respect the color token system:** Do not invent arbitrary hex codes. Utilize the predefined Primary Indigo, Neutral Slate, and Semantic palettes.
 4. **Enforce Responsive Layouts:** Use Bootstrap 5 grid systems (`col-12 col-md-6 col-lg-4`) with mobile-first breakpoints.
 5. **Ensure Icon Consistency:** Use Font Awesome 6 icons with appropriate semantic meaning (e.g., `fa-bullhorn` for announcements, `fa-briefcase` for jobs, `fa-user-graduate` for alumni).
+
+---
+
+## 9. Related Documentation & Cross-References
+
+* 🎨 **[Brand Guidelines (brand.md)](./brand.md)** — *Brand identity, storytelling, voice, tone, and personas*
+* 📊 **[Data Design Document (ddd.md)](./ddd.md)** — *Database schema, ER diagrams, normalization rules*
+* 📘 **[Project Overview & Setup (README.md)](./README.md)** — *Main project documentation and running guide*

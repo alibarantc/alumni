@@ -137,4 +137,5 @@ Sistem genelinde temiz, modern ve okunabilirliği yüksek olan **Google Fonts - 
 ## 7. İlgili Belgeler & Bağlantılar
 
 * 📊 **[Veri Tasarım Dokümanı (ddd.md)](./ddd.md)**
+* 📐 **[Tasarım Sistemi Spesifikasyonu (DESIGN.md)](./DESIGN.md)**
 * 📘 **[Ana Dokümantasyon ve Kurulum (README.md)](./README.md)**
