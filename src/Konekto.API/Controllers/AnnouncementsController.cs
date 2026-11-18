@@ -64,7 +64,10 @@ public class AnnouncementsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // GET: /Announcements/Delete/5
+    // POST: /Announcements/Delete/5
+    // State-changing actions must not be triggered by opening a link.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
         var announcement = await _repository.GetByIdAsync(id);

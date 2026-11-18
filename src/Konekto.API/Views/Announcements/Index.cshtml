@@ -175,13 +175,15 @@
                             <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-konekto rounded-pill px-3">
                                 Detay <i class="fa-solid fa-chevron-right ms-1" style="font-size: 0.7rem;"></i>
                             </a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" 
-                               onclick="return confirm('Bu duyuruyu silmek istediğinize emin misiniz?');" 
-                               class="btn btn-sm btn-outline-danger rounded-circle p-2 d-inline-flex align-items-center justify-content-center"
-                               style="width: 32px; height: 32px;"
-                               title="Duyuruyu Sil">
-                                <i class="fa-solid fa-trash" style="font-size: 0.75rem;"></i>
-                            </a>
+                            <form asp-action="Delete" asp-route-id="@item.Id" method="post"
+                                  onsubmit="return confirm('Bu duyuruyu silmek istediğinize emin misiniz?');">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger rounded-circle p-2 d-inline-flex align-items-center justify-content-center"
+                                        style="width: 32px; height: 32px;"
+                                        title="Duyuruyu Sil" aria-label="Duyuruyu Sil">
+                                    <i class="fa-solid fa-trash" style="font-size: 0.75rem;"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
