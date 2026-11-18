@@ -53,6 +53,13 @@ Veritabanı şeması, ER diyagramları ve normalizasyon kuralları detaylı olar
 
 ---
 
+## 🎨 Marka ve Görsel Kimlik Dokümantasyonu (Brand Guidelines)
+
+Konekto platformunun marka felsefesi, görsel kimliği, renk sistemi, tipografi hiyerarşisi ve UI bileşen standartları detaylı olarak belgelenmiştir:
+👉 **[Brand Guidelines (brand.md)](./brand.md)**
+
+---
+
 ## 🛠️ Teknoloji Yığını
 
 * **Backend & Web:** C# (.NET 9.0) & ASP.NET Core (MVC + Web API)
@@ -83,6 +90,7 @@ alumni-main/
 │       ├── wwwroot/            # Statik dosyalar
 │       └── Program.cs          # Dependency Injection & Routing Yapılandırması
 │
+├── brand.md                    # Marka kimliği ve tasarım kılavuzu (Brand Guidelines)
 ├── ddd.md                      # Kapsamlı Veri Tasarım Dokümanı (DDD)
 ├── Dockerfile                  # Multi-stage production container build
 ├── docker-compose.yml          # Konteyner orkestrasyonu
