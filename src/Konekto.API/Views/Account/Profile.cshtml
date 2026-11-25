@@ -69,7 +69,7 @@
                             <i class="fa-solid fa-shield-halved me-1"></i> Yönetici Paneline Git
                         </a>
                     }
-                    else
+                    else if (User.IsInRole("Alumni"))
                     {
                         <a asp-controller="Announcements" asp-action="Create" class="btn btn-outline-konekto rounded-pill px-4">
                             <i class="fa-solid fa-bullhorn me-1"></i> Duyuru Paylaş
