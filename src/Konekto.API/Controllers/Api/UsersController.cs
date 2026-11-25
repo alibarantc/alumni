@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Konekto.DataAccess.Context;
 using Konekto.Domain.Entities;
@@ -6,6 +9,7 @@ using Konekto.Domain.Interfaces;
 
 namespace Konekto.API.Controllers.Api;
 
+[Authorize(Roles = "Admin", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
