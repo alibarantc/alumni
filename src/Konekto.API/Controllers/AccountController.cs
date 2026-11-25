@@ -93,7 +93,7 @@ public class AccountController : Controller
         Response.Cookies.Append("konekto_token", token, new CookieOptions
         {
             HttpOnly = true,
-            Secure = false,
+            Secure = Request.IsHttps,
             SameSite = SameSiteMode.Lax,
             Expires = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(14) : DateTimeOffset.UtcNow.AddHours(8)
         });
