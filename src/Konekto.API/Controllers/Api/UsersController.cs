@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Konekto.DataAccess.Context;
 using Konekto.Domain.Entities;
 using Konekto.Domain.Interfaces;
+using Konekto.Business.Security;
 
 namespace Konekto.API.Controllers.Api;
 
@@ -57,13 +57,17 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<object>> Create([FromBody] CreateUserRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+            return BadRequest(new { message = "Şifre en az 8 karakter olmalıdır." });
+        if (request.Role is not ("Admin" or "Alumni" or "Student"))
+            return BadRequest(new { message = "Geçersiz rol." });
         var user = new User
         {
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email,
             Role = string.IsNullOrWhiteSpace(request.Role) ? "Alumni" : request.Role,
-            PasswordHash = "HashedSamplePassword",
+            PasswordHash = PasswordHasher.HashPassword(request.Password),
             CreatedAt = DateTime.UtcNow,
             IsActive = true
         };
@@ -87,7 +91,12 @@ public class UsersController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(request.FirstName)) user.FirstName = request.FirstName;
         if (!string.IsNullOrWhiteSpace(request.LastName)) user.LastName = request.LastName;
-        if (!string.IsNullOrWhiteSpace(request.Role)) user.Role = request.Role;
+        if (!string.IsNullOrWhiteSpace(request.Role))
+        {
+            if (request.Role is not ("Admin" or "Alumni" or "Student"))
+                return BadRequest(new { message = "Geçersiz rol." });
+            user.Role = request.Role;
+        }
 
         await _userRepository.UpdateAsync(user);
         return Ok(new { user.Id, Name = $"{user.FirstName} {user.LastName}".Trim(), user.Email, user.Role });
@@ -195,6 +204,7 @@ public class CreateUserRequest
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = "Alumni";
+    public string Password { get; set; } = string.Empty;
 }
 
 public class UpdateUserRequest
