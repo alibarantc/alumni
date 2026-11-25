@@ -321,15 +321,73 @@
                                 <i class="fa-solid fa-circle-nodes text-muted"></i> Ekosistem
                             </a>
                         </li>
+                        @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-danger fw-bold" asp-controller="Admin" asp-action="Index">
+                                    <i class="fa-solid fa-shield-halved text-danger"></i> Yönetici Paneli
+                                </a>
+                            </li>
+                        }
                     </ul>
 
                     <div class="d-flex align-items-center gap-2 pt-2 pt-lg-0">
-                        <a href="/swagger" target="_blank" class="btn btn-sm btn-outline-secondary px-3 py-2 rounded-pill fw-semibold" title="Swagger REST API Dokümantasyonu">
+                        <a href="/swagger" target="_blank" class="btn btn-sm btn-outline-secondary px-3 py-2 rounded-pill fw-semibold d-none d-md-inline-flex" title="Swagger REST API Dokümantasyonu">
                             <i class="fa-solid fa-code text-primary me-1"></i> Swagger API
                         </a>
-                        <a asp-controller="Announcements" asp-action="Create" class="btn btn-sm btn-konekto rounded-pill px-3 py-2">
-                            <i class="fa-solid fa-plus me-1"></i> Duyuru Yayınla
-                        </a>
+
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "User";
+                            var roleBadgeClass = userRole switch
+                            {
+                                "Admin" => "bg-danger text-white",
+                                "Student" => "bg-success-subtle text-success",
+                                _ => "bg-primary-subtle text-primary"
+                            };
+
+                            <a asp-controller="Announcements" asp-action="Create" class="btn btn-sm btn-konekto rounded-pill px-3 py-2">
+                                <i class="fa-solid fa-plus me-1"></i> Duyuru Yayınla
+                            </a>
+
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border dropdown-toggle rounded-pill px-3 py-2 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa-solid fa-circle-user text-primary fs-6"></i>
+                                    <span class="fw-bold text-dark small">@User.Identity.Name</span>
+                                    <span class="badge @roleBadgeClass small ms-1" style="font-size: 0.7rem;">@userRole</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 p-2">
+                                    <li>
+                                        <a class="dropdown-item rounded-2 py-2 small" asp-controller="Account" asp-action="Profile">
+                                            <i class="fa-regular fa-id-badge text-primary me-2"></i> Profilim
+                                        </a>
+                                    </li>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <li>
+                                            <a class="dropdown-item rounded-2 py-2 small fw-bold text-danger" asp-controller="Admin" asp-action="Index">
+                                                <i class="fa-solid fa-shield-halved me-2"></i> Yönetici Paneli
+                                            </a>
+                                        </li>
+                                    }
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item rounded-2 py-2 small text-danger" asp-controller="Account" asp-action="Logout">
+                                            <i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış Yap
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-konekto rounded-pill px-3 py-2">
+                                <i class="fa-solid fa-right-to-bracket me-1"></i> Giriş Yap
+                            </a>
+                            <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-konekto rounded-pill px-3 py-2">
+                                <i class="fa-solid fa-user-plus me-1"></i> Kayıt Ol
+                            </a>
+                        }
                     </div>
                 </div>
             </div>

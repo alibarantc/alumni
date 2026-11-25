@@ -16,12 +16,26 @@ public class UserRepository : IUserRepository
 
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _context.Users.ToListAsync();
+        return await _context.Users
+            .Include(u => u.Alumni)
+            .OrderByDescending(u => u.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task<User?> GetByIdAsync(int id)
     {
-        return await _context.Users.FindAsync(id);
+        return await _context.Users
+            .Include(u => u.Alumni)
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task<User?> GetByEmailAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return null;
+
+        return await _context.Users
+            .Include(u => u.Alumni)
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.Trim().ToLower());
     }
 
     public async Task<User> AddAsync(User user)
@@ -40,6 +54,11 @@ public class UserRepository : IUserRepository
         existing.LastName = user.LastName;
         existing.Email = user.Email;
         existing.Role = user.Role;
+        existing.IsActive = user.IsActive;
+        if (!string.IsNullOrWhiteSpace(user.PasswordHash))
+        {
+            existing.PasswordHash = user.PasswordHash;
+        }
 
         await _context.SaveChangesAsync();
         return true;
@@ -55,4 +74,3 @@ public class UserRepository : IUserRepository
         return true;
     }
 }
-

@@ -23,6 +23,17 @@ public static class DatabaseSeeder
             await context.Users.AddRangeAsync(users);
             await context.SaveChangesAsync();
         }
+        else
+        {
+            // Ensure admin@konekto.edu.tr exists
+            var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "admin@konekto.edu.tr");
+            if (adminUser == null)
+            {
+                var admin = UserFactory.Create("Sistem", "Yöneticisi", "admin@konekto.edu.tr", role: "Admin", rawPassword: "Admin123!");
+                await context.Users.AddAsync(admin);
+                await context.SaveChangesAsync();
+            }
+        }
 
         // 3. Seed Alumni Records
         if (!await context.Alumni.AnyAsync())
@@ -49,4 +60,3 @@ public static class DatabaseSeeder
         }
     }
 }
-

@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Konekto.DataAccess.Context;
 using Konekto.DataAccess.Repositories;
 using Konekto.Domain.Entities;
@@ -7,6 +11,7 @@ using Konekto.Domain.Interfaces;
 using Konekto.Business.Factories;
 using Konekto.Business.Seeding;
 using Konekto.API.Middlewares;
+using Konekto.API.Services;
 using ApplicationEntity = Konekto.Domain.Entities.Application;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +33,44 @@ builder.Services.AddScoped<IAlumniRepository, AlumniRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
 
+// Register JWT Token Service
+builder.Services.AddSingleton<JwtTokenService>();
+
+// Configure Authentication (Cookies + JWT Bearer)
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] ?? JwtTokenService.DefaultSecretKey;
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.Cookie.Name = "Konekto.AuthCookie";
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    options.SlidingExpiration = true;
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+        ValidateIssuer = true,
+        ValidIssuer = JwtTokenService.DefaultIssuer,
+        ValidateAudience = true,
+        ValidAudience = JwtTokenService.DefaultAudience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromMinutes(5)
+    };
+});
+
+builder.Services.AddAuthorization();
+
 // Configure CORS for Client-Server communication (as shown on whiteboard)
 builder.Services.AddCors(options =>
 {
@@ -40,6 +83,22 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Seed Database automatically on startup (creates default admin & users)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<KonektoDbContext>();
+        await DatabaseSeeder.SeedAsync(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "Veritabanı seeding sırasında geçici bir uyarı oluştu.");
+    }
+}
 
 // Custom Terminal Logger Middleware (Format: time method route restype duration)
 app.UseRequestLogging();
@@ -60,6 +119,12 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAll");
 app.UseStaticFiles();
 app.UseRouting();
+
+// Authentication, Authorization & Custom Auth Middleware
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseKonektoAuthMiddleware();
+
 app.UseHttpsRedirection();
 
 // Map MVC Controllers & API Controllers

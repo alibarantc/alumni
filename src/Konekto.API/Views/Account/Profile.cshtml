@@ -1,0 +1,145 @@
+@model Konekto.API.Models.ProfileViewModel
+@{
+    ViewData["Title"] = "Profilim";
+    var userRole = Model.Role;
+    var roleBadge = userRole switch
+    {
+        "Admin" => "bg-danger-subtle text-danger",
+        "Student" => "bg-success-subtle text-success",
+        _ => "bg-primary-subtle text-primary"
+    };
+}
+
+<style>
+    .profile-box {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 24px;
+        box-shadow: var(--shadow-card);
+        padding: 36px;
+    }
+    .profile-avatar-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+        color: #ffffff;
+        font-size: 2rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+    }
+</style>
+
+<div class="row justify-content-center py-4">
+    <div class="col-lg-10 col-xl-9">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success rounded-4 small py-3 mb-4 shadow-sm">
+                <i class="fa-solid fa-circle-check me-2"></i> @TempData["Success"]
+            </div>
+        }
+
+        <div class="profile-box mb-4">
+            <!-- Header User Card -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-4 border-bottom">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="profile-avatar-circle">
+                        @(string.IsNullOrWhiteSpace(Model.FirstName) ? "K" : Model.FirstName.Substring(0, 1))
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <h2 class="h4 fw-bold text-dark mb-0">@Model.FirstName @Model.LastName</h2>
+                            <span class="badge @roleBadge fw-bold rounded-pill px-3 py-1">@Model.Role</span>
+                        </div>
+                        <p class="text-muted small mb-0">
+                            <i class="fa-solid fa-envelope me-1"></i> @Model.Email
+                            <span class="mx-2">•</span>
+                            <i class="fa-regular fa-calendar-check me-1"></i> Üyelik: @Model.CreatedAt.ToString("dd MMMM yyyy")
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-controller="Admin" asp-action="Index" class="btn btn-danger rounded-pill px-4">
+                            <i class="fa-solid fa-shield-halved me-1"></i> Yönetici Paneline Git
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Announcements" asp-action="Create" class="btn btn-outline-konekto rounded-pill px-4">
+                            <i class="fa-solid fa-bullhorn me-1"></i> Duyuru Paylaş
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Profile Edit Form -->
+            <div class="pt-4">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="fa-solid fa-user-pen text-primary me-2"></i> Profil Bilgilerini Güncelle
+                </h5>
+
+                <form asp-action="Profile" method="post">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Ad</label>
+                            <input name="FirstName" value="@Model.FirstName" class="form-control rounded-3" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Soyad</label>
+                            <input name="LastName" value="@Model.LastName" class="form-control rounded-3" required />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Mevcut Şirket / Kurum</label>
+                            <input name="CurrentCompany" value="@Model.CurrentCompany" class="form-control rounded-3" placeholder="Örn: Google, Hepsiburada veya Serbest" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Unvan / Görev</label>
+                            <input name="CurrentTitle" value="@Model.CurrentTitle" class="form-control rounded-3" placeholder="Örn: Senior Software Engineer" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">LinkedIn Profil Adresi</label>
+                        <input name="LinkedInUrl" value="@Model.LinkedInUrl" class="form-control rounded-3" placeholder="https://linkedin.com/in/kullaniciadi" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold small text-dark">Biyografi & İlgi Alanları</label>
+                        <textarea name="Bio" rows="4" class="form-control rounded-3" placeholder="Kendinizden, uzmanlık alanlarınızdan veya mezun topluluğuna katkı sağlayabileceğiniz konulardan bahsedin...">@Model.Bio</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-konekto rounded-pill px-5 py-2 fw-bold">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Değişiklikleri Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- JWT Token & Whiteboard Client-Server Bilgilendirme Kartı -->
+        <div class="card p-4 bg-white border rounded-4 shadow-sm">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fa-solid fa-key text-warning fs-5"></i>
+                <h6 class="fw-bold text-dark mb-0">REST API & Tahtadaki İstemci-Sunucu Token Entegrasyonu</h6>
+            </div>
+            <p class="text-muted small mb-2">
+                Ders tahtasında gösterilen <strong>Client-Server Token Akışı</strong> gereği, oturumunuz için üretilen Bearer token arka planda <code>konekto_token</code> çerezi ve başlığıyla saklanır. API üzerinden test etmek için aşağıdaki uç noktaları kullanabilirsiniz:
+            </p>
+            <div class="d-flex flex-wrap gap-2 small">
+                <code class="p-2 bg-light rounded text-dark border">POST /api/auth/login</code>
+                <code class="p-2 bg-light rounded text-dark border">POST /api/auth/register</code>
+                <code class="p-2 bg-light rounded text-dark border">GET /api/auth/me (Bearer Token)</code>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,311 @@
+@model IEnumerable<Konekto.Domain.Entities.User>
+@{
+    ViewData["Title"] = "Yönetici Paneli (Admin Portal)";
+    var announcements = ViewBag.Announcements as List<Announcement> ?? new List<Announcement>();
+    var jobs = ViewBag.Jobs as List<JobPosting> ?? new List<JobPosting>();
+}
+
+<style>
+    .admin-banner {
+        background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
+        color: #ffffff;
+        border-radius: 24px;
+        padding: 36px 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px -10px rgba(30, 27, 75, 0.35);
+    }
+    .admin-banner::after {
+        content: "";
+        position: absolute;
+        top: -60%;
+        right: -15%;
+        width: 380px;
+        height: 380px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .admin-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 20px;
+        box-shadow: var(--shadow-card);
+        padding: 28px;
+    }
+</style>
+
+<!-- 1. ADMIN HEADER BANNER -->
+<div class="admin-banner mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <div class="d-inline-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-danger text-white fw-bold px-3 py-1 rounded-pill">
+                    <i class="fa-solid fa-shield-halved me-1"></i> Admin Yetkisi
+                </span>
+                <span class="text-white-50 small">Sistem & Rol Yönetim Merkezi</span>
+            </div>
+            <h1 class="h2 fw-bold text-white mb-1" style="letter-spacing: -0.02em;">Konekto Yönetici Paneli</h1>
+            <p class="text-white-50 small mb-0">Kullanıcılara roller atayın (Admin, Alumni, Student), hesapları dondurun veya sistem içeriklerini denetleyin.</p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="/swagger" target="_blank" class="btn btn-outline-light rounded-pill px-3 py-2 small">
+                <i class="fa-solid fa-code me-1"></i> Swagger REST API
+            </a>
+            <a asp-controller="Announcements" asp-action="Create" class="btn btn-light text-dark rounded-pill px-4 py-2 small fw-bold">
+                <i class="fa-solid fa-plus me-1"></i> Yeni Duyuru
+            </a>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success rounded-4 small py-3 mb-4 shadow-sm">
+        <i class="fa-solid fa-circle-check me-2"></i> @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger rounded-4 small py-3 mb-4 shadow-sm">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i> @TempData["Error"]
+    </div>
+}
+
+<!-- 2. SİSTEM METRİKLERİ -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card p-3 bg-white border rounded-4 text-center">
+            <div class="text-primary fs-4 mb-1"><i class="fa-solid fa-users"></i></div>
+            <h3 class="fw-bold text-dark mb-0">@ViewBag.TotalUsers</h3>
+            <small class="text-muted" style="font-size: 0.75rem;">Toplam Kullanıcı</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card p-3 bg-white border rounded-4 text-center">
+            <div class="text-danger fs-4 mb-1"><i class="fa-solid fa-shield-halved"></i></div>
+            <h3 class="fw-bold text-dark mb-0">@ViewBag.AdminCount</h3>
+            <small class="text-muted" style="font-size: 0.75rem;">Yönetici (Admin)</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card p-3 bg-white border rounded-4 text-center">
+            <div class="text-primary fs-4 mb-1"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h3 class="fw-bold text-dark mb-0">@ViewBag.AlumniCount</h3>
+            <small class="text-muted" style="font-size: 0.75rem;">Kayıtlı Mezun</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card p-3 bg-white border rounded-4 text-center">
+            <div class="text-success fs-4 mb-1"><i class="fa-solid fa-book-open-reader"></i></div>
+            <h3 class="fw-bold text-dark mb-0">@ViewBag.StudentCount</h3>
+            <small class="text-muted" style="font-size: 0.75rem;">Kayıtlı Öğrenci</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card p-3 bg-white border rounded-4 text-center">
+            <div class="text-warning fs-4 mb-1"><i class="fa-solid fa-bullhorn"></i></div>
+            <h3 class="fw-bold text-dark mb-0">@ViewBag.TotalAnnouncements</h3>
+            <small class="text-muted" style="font-size: 0.75rem;">Duyurular</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card p-3 bg-white border rounded-4 text-center">
+            <div class="text-info fs-4 mb-1"><i class="fa-solid fa-briefcase"></i></div>
+            <h3 class="fw-bold text-dark mb-0">@ViewBag.TotalJobs</h3>
+            <small class="text-muted" style="font-size: 0.75rem;">Kariyer İlanı</small>
+        </div>
+    </div>
+</div>
+
+<!-- 3. KULLANICI YÖNETİMİ VE ROL ATAMA (WHITEBOARD: assign admin role to you & manipulate) -->
+<div class="admin-card mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="h5 fw-bold text-dark mb-1">
+                <i class="fa-solid fa-user-gear text-primary me-2"></i> Kullanıcı Yönetimi & Rol Değiştirme
+            </h4>
+            <p class="text-muted small mb-0">
+                Kullanıcıların rollerini (Admin, Alumni, Student) doğrudan değiştirebilir, hesaplarını dondurabilir veya silebilirsiniz.
+            </p>
+        </div>
+        <span class="badge bg-light text-secondary border px-3 py-2 small">
+            @Model.Count() Kullanıcı Listelendi
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr class="small text-muted">
+                    <th scope="col">ID</th>
+                    <th scope="col">Kullanıcı</th>
+                    <th scope="col">E-Posta</th>
+                    <th scope="col">Mevcut Rol</th>
+                    <th scope="col">Durum</th>
+                    <th scope="col" style="min-width: 200px;">Rolü Değiştir (Rol Ata)</th>
+                    <th scope="col" class="text-end">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    var roleClass = user.Role switch
+                    {
+                        "Admin" => "badge bg-danger text-white",
+                        "Student" => "badge bg-success-subtle text-success",
+                        _ => "badge bg-primary-subtle text-primary"
+                    };
+
+                    <tr>
+                        <td class="small fw-bold text-muted">#@user.Id</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center fw-bold text-dark small" style="width: 32px; height: 32px;">
+                                    @(string.IsNullOrWhiteSpace(user.FirstName) ? "U" : user.FirstName.Substring(0, 1))
+                                </div>
+                                <span class="fw-semibold text-dark small">@user.FirstName @user.LastName</span>
+                            </div>
+                        </td>
+                        <td class="small text-muted">@user.Email</td>
+                        <td>
+                            <span class="@roleClass fw-bold px-2 py-1 rounded-pill small">@user.Role</span>
+                        </td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="badge bg-success-subtle text-success small rounded-pill">Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger-subtle text-danger small rounded-pill">Donduruldu</span>
+                            }
+                        </td>
+                        <td>
+                            <!-- Rol Değiştirme Formu (Whiteboard: Assign Admin Role) -->
+                            <form asp-action="ChangeRole" method="post" class="d-flex align-items-center gap-2">
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                <select name="newRole" class="form-select form-select-sm rounded-pill" style="max-width: 130px;">
+                                    <option value="Admin" selected="@(user.Role == "Admin")">Admin</option>
+                                    <option value="Alumni" selected="@(user.Role == "Alumni")">Alumni</option>
+                                    <option value="Student" selected="@(user.Role == "Student")">Student</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Rolü Uygula">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                            </form>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                <!-- Durum Değiştir -->
+                                <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <button type="submit" class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-outline-success") rounded-circle" style="width: 30px; height: 30px;" title="@(user.IsActive ? "Hesabı Dondur" : "Hesabı Aktifleştir")">
+                                        <i class="fa-solid @(user.IsActive ? "fa-user-slash" : "fa-user-check")" style="font-size: 0.75rem;"></i>
+                                    </button>
+                                </form>
+                                <!-- Kullanıcıyı Sil -->
+                                <form asp-action="DeleteUser" method="post" class="d-inline" onsubmit="return confirm('@user.FirstName @user.LastName kullanıcısını silmek istediğinize emin misiniz?');">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" style="width: 30px; height: 30px;" title="Kullanıcıyı Sil">
+                                        <i class="fa-solid fa-trash" style="font-size: 0.75rem;"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 4. DUYURU & İLAN DENETİMİ (MANIPULATE DATA) -->
+<div class="row g-4">
+    <!-- Duyurular Denetimi -->
+    <div class="col-lg-6">
+        <div class="admin-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-bullhorn text-warning me-2"></i> Duyuru Denetimi
+                </h5>
+                <span class="badge bg-light text-secondary border small">@announcements.Count Duyuru</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>Başlık</th>
+                            <th>Kategori</th>
+                            <th>Yazar</th>
+                            <th class="text-end">Sil</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @foreach (var a in announcements.Take(6))
+                        {
+                            <tr>
+                                <td class="fw-semibold text-truncate" style="max-width: 180px;">@a.Title</td>
+                                <td><span class="badge bg-light text-dark border">@a.Category</span></td>
+                                <td class="text-muted">@a.Author</td>
+                                <td class="text-end">
+                                    <form asp-action="DeleteAnnouncement" method="post" class="d-inline" onsubmit="return confirm('Bu duyuruyu silmek istiyor musunuz?');">
+                                        <input type="hidden" name="id" value="@a.Id" />
+                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- İş İlanları Denetimi -->
+    <div class="col-lg-6">
+        <div class="admin-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-briefcase text-info me-2"></i> Kariyer İlanları Denetimi
+                </h5>
+                <span class="badge bg-light text-secondary border small">@jobs.Count İlan</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>Pozisyon</th>
+                            <th>Şirket</th>
+                            <th>Konum</th>
+                            <th class="text-end">Sil</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @foreach (var j in jobs.Take(6))
+                        {
+                            <tr>
+                                <td class="fw-semibold text-truncate" style="max-width: 180px;">@j.Title</td>
+                                <td class="text-muted">@(j.Company?.Name ?? "Partner")</td>
+                                <td class="text-muted">@(j.Location ?? "Hibrit")</td>
+                                <td class="text-end">
+                                    <form asp-action="DeleteJob" method="post" class="d-inline" onsubmit="return confirm('Bu ilanı silmek istiyor musunuz?');">
+                                        <input type="hidden" name="id" value="@j.Id" />
+                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

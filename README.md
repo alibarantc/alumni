@@ -11,6 +11,7 @@ Welcome to **Konekto**, an enterprise university communication and alumni tracki
 ---
 
 ## 📑 İçindekiler
+* [🔐 Kimlik Doğrulama & Yetkilendirme (Authentication & Authorization)](#-kimlik-doğrulama--yetkilendirme-authentication--authorization)
 * [🚀 Proje Özellikleri ve Mimarisi](#-4-hafta-proje-özellikleri-ve-mimarisi)
 * [📊 Data Design Documentation (ddd.md)](#-data-design-documentation-ddd)
 * [🎨 Marka ve Görsel Kimlik Dokümantasyonu (brand.md)](#-marka-ve-görsel-kimlik-dokümantasyonu-brand-guidelines)
@@ -18,6 +19,72 @@ Welcome to **Konekto**, an enterprise university communication and alumni tracki
 * [🛠️ Teknoloji Yığını](#️-teknoloji-yığını)
 * [📂 Dizin Yapısı](#-dizin-yapısı)
 * [⚙️ Kurulum ve Çalıştırma](#️-kurulum-ve-çalıştırma)
+
+---
+
+## 🔐 Kimlik Doğrulama & Yetkilendirme (Authentication & Authorization)
+
+Ders tahtasında belirtilen mimari doğrultusunda **Konekto**, hem MVC Razor görünümleri için **Cookie Authentication** hem de RESTful API istemcileri için **JWT Bearer Token** tabanlı çift katmanlı bir kimlik doğrulama altyapısına sahiptir.
+
+### 1. İstemci-Sunucu (Client-Server) Token Akışı (Tahta Mimarisi)
+```text
+  [ Client (Tarayıcı / API İstemcisi) ]
+             |
+             |  1. POST /api/auth/login (Username + Password)
+             v
+  [ Server (Konekto Auth / API) ]
+             |
+             |  2. Şifre Doğrulama (PBKDF2) -> 200 OK + JWT Token / Cookie
+             v
+  [ Client ]
+             |
+             |  3. GET /api/... veya GET /admin (Header: Bearer Token / Cookie)
+             v
+  [ AuthMiddleware ] -> Token / Rol Doğrulama ('Admin' kontrolü)
+             |
+             |  4. 200 OK (Yetki Var) / 401 Unauthorized / 403 Forbidden
+             v
+  [ Client ]
+```
+
+### 2. Hazır Test Kullanıcı Hesapları (Seeded Test Accounts)
+Sistemi test etmek için veritabanına otomatik olarak aşağıdaki hesaplar tohumlanmaktadır:
+
+| Rol | E-Posta | Şifre | Yetkiler & Sayfalar |
+| :--- | :--- | :--- | :--- |
+| **Admin (Yönetici)** | `admin@konekto.edu.tr` | `Admin123!` | `/Admin` Yönetici Paneli, Rol Atama, Kullanıcı Dondurma/Silme, Tüm İçerik Moderasyonu |
+| **Alumni (Mezun)** | `alumni@konekto.edu.tr` | `Alumni123!` | `/Account/Profile`, Duyuru Yayınlama (`/Announcements/Create`), Profil Düzenleme |
+| **Student (Öğrenci)** | `student@konekto.edu.tr` | `Student123!` | `/Account/Profile`, Mezun Rehberi ve İlan İnceleme |
+
+> 💡 *Not: Giriş sayfasında (`/Account/Login`) yer alan **"Hızlı Test Girişleri"** butonlarına tıklayarak bu hesap bilgilerini tek tıkla forma doldurabilirsiniz.*
+
+### 3. Kullanıcı Kayıt & Giriş / Çıkış (Register, Login & Logout)
+- **Kayıt Sayfası (`/Account/Register`):** Ad, Soyad, E-Posta, Şifre, Rol (`Alumni` veya `Student`), Bölüm seçimi, Mezuniyet Yılı ve Şirket/Unvan alanlarını içerir. Şifreler **PBKDF2-HMAC-SHA256** ile tuzlanarak (salt) güvenle saklanır.
+- **Giriş Sayfası (`/Account/Login`):** Kullanıcıyı doğrular, Cookie oluşturur ve API için `konekto_token` üretir. Admin rolü doğrudan `/Admin` paneline yönlendirilir.
+- **Çıkış (`/Account/Logout`):** Cookie ve token'ları temizleyerek güvenli oturum kapatma sağlar.
+
+### 4. Özel Auth Middleware (`Konekto.API.Middlewares.AuthMiddleware`)
+- Gelen her istekte `Authorization: Bearer <token>` başlığını, `X-Auth-Token` başlığını veya `konekto_token` çerezini denetler.
+- `/admin` ve `/api/admin` rotalarını korur:
+  - Giriş yapmamış kullanıcılara API için `401 Unauthorized` JSON, tarayıcı için `/Account/Login` yönlendirmesi yapar.
+  - Rolü `Admin` olmayan kullanıcılara API için `403 Forbidden` JSON, tarayıcı için `/Account/AccessDenied` yönlendirmesi yapar.
+
+### 5. Yönetici Paneli (`/Admin`) & Rol Atama (Assign Admin Role)
+- Yalnızca `Admin` rolündeki kullanıcılar erişebilir.
+- **Rol Atama (Assign Role):** Herhangi bir kullanıcının rolü tek tıkla `Admin`, `Alumni` veya `Student` olarak değiştirilebilir.
+- **Hesap Durumu:** Kullanıcı hesapları anında dondurulabilir veya aktifleştirilebilir.
+- **Veri Moderasyonu:** Tüm duyurular ve iş ilanları incelenip silinebilir.
+
+### 6. Kullanıcı Rolüne Göre Dinamik Navigasyon (`_Layout.cshtml`)
+- **Giriş Yapılmamışsa:** Üst menüde *"Giriş Yap"* ve *"Kayıt Ol"* butonları görüntülenir.
+- **Giriş Yapılmışsa:** Kullanıcı adı ve rol rozeti (örn: `[Admin]`, `[Alumni]`, `[Student]`) ile modern açılır menü gösterilir.
+- **Admin Rolü Varsa:** Üst menüde kırmızı kalkan ikonuyla vurgulanan **"Yönetici Paneli"** bağlantısı belirir.
+- **Kullanıcıya Özel Profil:** `/Account/Profile` sayfasında kullanıcı kendi rol bilgilerini, şirket, unvan, LinkedIn ve biyografisini düzenleyebilir.
+
+### 7. REST API Kimlik Doğrulama Uç Noktaları
+- `POST /api/auth/login`: `{ email, password }` alır; `{ token, tokenType: "Bearer", user }` döner.
+- `POST /api/auth/register`: Yeni kullanıcı kaydeder ve token döner.
+- `GET /api/auth/me`: `Authorization: Bearer <token>` başlığıyla çağrıldığında doğrulanmış kullanıcı bilgilerini döner.
 
 ---
 

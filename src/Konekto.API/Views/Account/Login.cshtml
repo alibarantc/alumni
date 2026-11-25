@@ -1,0 +1,135 @@
+@model Konekto.API.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Giriş Yap";
+}
+
+<style>
+    .auth-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 24px;
+        padding: 44px;
+        box-shadow: var(--shadow-card);
+    }
+    .quick-account-pill {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px dashed var(--color-border-subtle);
+        background: #F8FAFC;
+        border-radius: 12px;
+        padding: 10px 14px;
+    }
+    .quick-account-pill:hover {
+        background: var(--color-primary-light);
+        border-color: var(--color-primary);
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="row justify-content-center py-4">
+    <div class="col-md-8 col-lg-5">
+        <div class="auth-card">
+            <!-- Brand & Title -->
+            <div class="text-center mb-4">
+                <div class="brand-icon-box mx-auto mb-3" style="width: 52px; height: 52px; font-size: 1.4rem;">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h2 class="h3 fw-bold text-dark mb-1" style="letter-spacing: -0.02em;">Konekto'ya Giriş Yap</h2>
+                <p class="text-muted small">Üniversite ve mezun ağı hesabınızla oturum açın</p>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success rounded-3 small py-2 mb-3">
+                    <i class="fa-solid fa-circle-check me-1"></i> @TempData["Success"]
+                </div>
+            }
+
+            <form asp-action="Login" method="post">
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 small py-2 mb-3"></div>
+
+                <!-- E-Posta -->
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label fw-semibold small text-dark">
+                        <i class="fa-solid fa-envelope text-primary me-1"></i> E-Posta Adresi
+                    </label>
+                    <input asp-for="Email" id="loginEmail" class="form-control rounded-3 py-2" placeholder="ornek@konekto.edu.tr" required autofocus />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <!-- Şifre -->
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label fw-semibold small text-dark">
+                        <i class="fa-solid fa-key text-primary me-1"></i> Şifre
+                    </label>
+                    <input asp-for="Password" id="loginPassword" class="form-control rounded-3 py-2" placeholder="••••••••" required />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <!-- Beni Hatırla -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label small text-muted">Beni hatırla</label>
+                    </div>
+                </div>
+
+                <!-- Giriş Butonu -->
+                <button type="submit" class="btn btn-konekto w-100 rounded-pill py-2 fw-bold mb-3 shadow">
+                    <i class="fa-solid fa-right-to-bracket me-2"></i> Güvenli Giriş Yap
+                </button>
+
+                <div class="text-center small text-muted">
+                    Henüz bir hesabınız yok mu? 
+                    <a asp-action="Register" class="text-primary fw-bold text-decoration-none">Hemen Kayıt Olun</a>
+                </div>
+            </form>
+
+            <!-- Hızlı Test Girişleri Paneli (Hoca & Test Kolaylığı İçin) -->
+            <div class="mt-4 pt-4 border-top">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-bold">
+                        <i class="fa-solid fa-vial me-1 text-primary"></i> Hızlı Test Girişleri
+                    </span>
+                    <span class="badge bg-primary-subtle text-primary small">Tek Tıkla Doldur</span>
+                </div>
+
+                <div class="d-flex flex-column gap-2">
+                    <div class="quick-account-pill d-flex justify-content-between align-items-center" onclick="fillLogin('admin@konekto.edu.tr', 'Admin123!')">
+                        <div>
+                            <div class="fw-bold small text-dark"><i class="fa-solid fa-shield-halved text-danger me-1"></i> Admin Hesabı</div>
+                            <small class="text-muted">admin@konekto.edu.tr</small>
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger small">Admin123!</span>
+                    </div>
+
+                    <div class="quick-account-pill d-flex justify-content-between align-items-center" onclick="fillLogin('alumni@konekto.edu.tr', 'Alumni123!')">
+                        <div>
+                            <div class="fw-bold small text-dark"><i class="fa-solid fa-graduation-cap text-primary me-1"></i> Mezun Hesabı</div>
+                            <small class="text-muted">alumni@konekto.edu.tr</small>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary small">Alumni123!</span>
+                    </div>
+
+                    <div class="quick-account-pill d-flex justify-content-between align-items-center" onclick="fillLogin('student@konekto.edu.tr', 'Student123!')">
+                        <div>
+                            <div class="fw-bold small text-dark"><i class="fa-solid fa-user-graduate text-success me-1"></i> Öğrenci Hesabı</div>
+                            <small class="text-muted">student@konekto.edu.tr</small>
+                        </div>
+                        <span class="badge bg-success-subtle text-success small">Student123!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function fillLogin(email, pass) {
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = pass;
+        }
+    </script>
+}

@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Erişim Reddedildi - 403";
+}
+
+<div class="row justify-content-center py-5">
+    <div class="col-md-8 col-lg-6 text-center">
+        <div class="card p-5 bg-white border rounded-4 shadow-sm">
+            <div class="mb-3">
+                <span class="badge bg-danger-subtle text-danger fs-6 fw-bold px-3 py-2 rounded-pill">
+                    <i class="fa-solid fa-hand me-1"></i> Yetki Hatası (403)
+                </span>
+            </div>
+
+            <div class="my-3">
+                <i class="fa-solid fa-shield-virus fa-5x text-danger opacity-75"></i>
+            </div>
+
+            <h1 class="h3 fw-bold text-dark mt-3 mb-2">Bu Sayfaya Erişim Yetkiniz Yok</h1>
+            <p class="text-muted small mb-4" style="line-height: 1.6;">
+                Talep ettiğiniz yönetim sayfasına veya kaynağa erişmek için <strong>Admin (Yönetici)</strong> rolüne sahip olmanız gerekmektedir. Mevcut hesabınızın bu yetkisi bulunmamaktadır.
+            </p>
+
+            <div class="d-flex flex-wrap justify-content-center gap-2 pt-2">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-konekto rounded-pill px-4">
+                    <i class="fa-solid fa-house-chimney me-1"></i> Ana Sayfa
+                </a>
+                <a asp-controller="Account" asp-action="Profile" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="fa-solid fa-user me-1"></i> Profilim
+                </a>
+                <a asp-controller="Account" asp-action="Logout" class="btn btn-outline-danger rounded-pill px-4">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Farklı Hesapla Giriş Yap
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

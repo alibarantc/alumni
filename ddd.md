@@ -357,3 +357,92 @@ Detail: Underlying exception or context
 StackTrace: Full trace (for 500 errors)
 ------------------------------------------------------------
 ```
+
+---
+
+## 9. Users, Roles & Authentication / Authorization Architecture (RBAC)
+
+### 9.1 Client-Server Authentication Flow (Whiteboard Architecture)
+
+As specified in the lecture whiteboard architecture, client applications authenticate against the server via credentials and receive a secure token, which is subsequently transmitted in subsequent requests:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as İstemci (Client / Browser / Mobile)
+    participant Server as Konekto Sunucusu (API & Auth)
+    participant DB as Veritabanı (Users Table)
+
+    Note over Client,Server: 1. Kimlik Doğrulama (Authentication)
+    Client->>Server: POST /api/auth/login { username, password }
+    Server->>DB: Kullanıcıyı sorgula & PasswordHash doğrula (PBKDF2)
+    DB-->>Server: Kullanıcı verisi & Rol bilgisi
+    Server-->>Client: 200 OK + JWT Token (Bearer) & Auth Cookie
+
+    Note over Client,Server: 2. Yetkilendirme ile Kaynak İstemi (Authorization)
+    Client->>Server: GET /api/admin veya GET /api/auth/me (Header: Bearer Token)
+    Server->>Server: AuthMiddleware & TokenValidation: Claim & Rol kontrolü
+    alt Yetki Geçerli (Role == 'Admin')
+        Server-->>Client: 200 OK + Talep Edilen Kaynak / Veri
+    else Yetki Yetersiz (Role != 'Admin')
+        Server-->>Client: 403 Forbidden (Yetki Yetersiz)
+    else Token Geçersiz veya Eksik
+        Server-->>Client: 401 Unauthorized (Giriş Gerekli)
+    end
+```
+
+---
+
+### 9.2 Users Entity & Cryptographic Hashing
+
+* **Primary Key:** `Id` (`int`, Identity)
+* **Unique Identity:** `Email` (`NVARCHAR(150)`, Unique Index)
+* **Password Hashing:** `PasswordHash` uses **PBKDF2** (RFC 2898 standard) with **HMAC-SHA256**, 100,000 iterations, a 16-byte cryptographically secure pseudorandom salt, and a 32-byte subkey. Stored as `Salt:Hash` (Base64 encoded).
+* **Role Membership:** `Role` (`NVARCHAR(20)`, Default: `'Alumni'`)
+
+---
+
+### 9.3 System Roles & Permissions Matrix (RBAC)
+
+| Yetenek / Kaynak (Permission) | Admin (Yönetici) | Alumni (Mezun) | Student (Öğrenci) | Misafir (Guest) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Giriş Yap & Token Al** | ✅ | ✅ | ✅ | ❌ |
+| **Kayıt Ol (Register)** | ✅ (Sistem Yöneticisi) | ✅ | ✅ | ✅ |
+| **Kendi Profilini Güncelleme** | ✅ | ✅ | ✅ | ❌ |
+| **Yönetici Paneline Erişim (`/admin`)** | ✅ | ❌ | ❌ | ❌ |
+| **Kullanıcı Rolü Değiştirme (Role Assign)**| ✅ | ❌ | ❌ | ❌ |
+| **Kullanıcı Dondurma / Silme** | ✅ | ❌ | ❌ | ❌ |
+| **Duyuruları Okuma** | ✅ | ✅ | ✅ | ✅ |
+| **Yeni Duyuru Yayınlama** | ✅ | ✅ | ❌ | ❌ |
+| **Duyuru Silme / Moderasyon** | ✅ (Tüm Duyurular) | ✅ (Kendi Duyuruları) | ❌ | ❌ |
+| **İş İlanlarını Görüntüleme** | ✅ | ✅ | ✅ | ✅ |
+| **İş İlanı Yayınlama** | ✅ | ✅ | ❌ | ❌ |
+| **Mezun Rehberi Arama & İnceleme** | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+### 9.4 Role Definitions
+
+1. **Admin (Yönetici):**
+   - Sistemin en yetkili rolüdür.
+   - Yönetici Paneli (`/Admin`) üzerinden tüm kullanıcıları listeler, kullanıcıların rollerini dinamik olarak değiştirebilir (`Admin`, `Alumni`, `Student`), hesapları dondurabilir veya silebilir.
+   - Tüm duyuru ve iş ilanlarını denetleyip silebilir.
+2. **Alumni (Mezun):**
+   - Üniversiteden mezun olmuş kayıtlı kullanıcılar.
+   - Kendi mezun profilini, çalıştığı şirket, unvan, LinkedIn adresi ve biyografisini düzenleyebilir.
+   - Topluluk için duyuru yayınlayabilir (`/Announcements/Create`) ve iş/staj fırsatları paylaşabilir.
+3. **Student (Öğrenci):**
+   - Üniversitede halen öğrenim görmekte olan kullanıcılar.
+   - Mezun rehberini inceleyebilir, mezunlarla iletişime geçebilir, duyuruları takip edebilir ve açık kariyer ilanlarına başvurabilir.
+4. **Academician (Akademisyen / İsteğe Bağlı):**
+   - Üniversite bölümleri ve akademik programlarla ilişkili duyuruları yönetir.
+
+---
+
+### 9.5 Middleware & Pipeline Yetkilendirme Yapısı
+
+* **`AuthMiddleware` (`Konekto.API.Middlewares.AuthMiddleware`):**
+  İstemciden gelen `Authorization: Bearer <token>` başlığını, `X-Auth-Token` başlığını veya `konekto_token` çerezini inceler. `JwtTokenService` üzerinden token'ı doğrular ve HTTP Context'e `ClaimsPrincipal` iliştirir.
+* **Route Guardian:**
+  `/admin` ve `/api/admin` rotalarına gelen isteklerde kullanıcının kimliğini ve `Admin` rolünü doğrular; yetkisiz API isteklerine `401 Unauthorized` / `403 Forbidden` JSON, tarayıcı isteklerine ise `/Account/Login` veya `/Account/AccessDenied` yönlendirmesi yapar.
+

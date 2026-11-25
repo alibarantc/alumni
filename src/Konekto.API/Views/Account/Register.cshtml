@@ -1,0 +1,166 @@
+@model Konekto.API.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Kayıt Ol";
+    var departments = ViewBag.Departments as List<Department> ?? new List<Department>();
+}
+
+<style>
+    .register-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: 24px;
+        padding: 44px;
+        box-shadow: var(--shadow-card);
+    }
+    .role-select-box {
+        border: 1.5px solid var(--color-border-subtle);
+        border-radius: 14px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .role-select-box:hover, .role-select-box.selected {
+        border-color: var(--color-primary);
+        background-color: var(--color-primary-light);
+    }
+</style>
+
+<div class="row justify-content-center py-4">
+    <div class="col-lg-8 col-xl-7">
+        <div class="register-card">
+            <!-- Header -->
+            <div class="text-center mb-4 pb-2 border-bottom">
+                <div class="brand-icon-box mx-auto mb-3" style="width: 52px; height: 52px; font-size: 1.4rem;">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h2 class="h3 fw-bold text-dark mb-1" style="letter-spacing: -0.02em;">Konekto'ya Katılın</h2>
+                <p class="text-muted small">Üniversite mezun ve öğrenci ağına kaydolarak fırsatları yakalayın</p>
+            </div>
+
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 small py-2 mb-3"></div>
+
+                <!-- 1. Kişisel Bilgiler -->
+                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-id-card text-primary me-2"></i> Temel Bilgiler</h6>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="FirstName" class="form-label fw-semibold small text-dark">Ad <span class="text-danger">*</span></label>
+                        <input asp-for="FirstName" class="form-control rounded-3" placeholder="Örn: Mehmet" required />
+                        <span asp-validation-for="FirstName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="LastName" class="form-label fw-semibold small text-dark">Soyad <span class="text-danger">*</span></label>
+                        <input asp-for="LastName" class="form-control rounded-3" placeholder="Örn: Yılmaz" required />
+                        <span asp-validation-for="LastName" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label fw-semibold small text-dark">E-Posta Adresi <span class="text-danger">*</span></label>
+                    <input asp-for="Email" class="form-control rounded-3" placeholder="ornek@alumni.edu.tr" required />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <!-- 2. Şifre -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label fw-semibold small text-dark">Şifre <span class="text-danger">*</span></label>
+                        <input asp-for="Password" class="form-control rounded-3" placeholder="En az 6 karakter" required />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmPassword" class="form-label fw-semibold small text-dark">Şifre Tekrar <span class="text-danger">*</span></label>
+                        <input asp-for="ConfirmPassword" class="form-control rounded-3" placeholder="Şifrenizi tekrar giriniz" required />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- 3. Rol & Statü Seçimi -->
+                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-graduation-cap text-primary me-2"></i> Üyelik Rolü & Statü</h6>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-check-label d-block">
+                            <input type="radio" asp-for="Role" value="Alumni" class="d-none" id="roleAlumni" checked />
+                            <div class="role-select-box text-center" id="boxAlumni">
+                                <i class="fa-solid fa-user-graduate fs-4 text-primary mb-2"></i>
+                                <div class="fw-bold text-dark small">Mezun (Alumni)</div>
+                                <small class="text-muted" style="font-size: 0.75rem;">Üniversiteden mezun olmuş profesyonel</small>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-check-label d-block">
+                            <input type="radio" asp-for="Role" value="Student" class="d-none" id="roleStudent" />
+                            <div class="role-select-box text-center" id="boxStudent">
+                                <i class="fa-solid fa-book-open-reader fs-4 text-success mb-2"></i>
+                                <div class="fw-bold text-dark small">Öğrenci (Student)</div>
+                                <small class="text-muted" style="font-size: 0.75rem;">Halen lisans / önlisans öğrencisi</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 4. Akademik & Mesleki Detaylar -->
+                <div class="p-3 bg-light rounded-4 border mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="DepartmentId" class="form-label fw-semibold small text-dark">Bölüm</label>
+                            <select asp-for="DepartmentId" class="form-select rounded-3">
+                                <option value="">-- Bölüm Seçiniz --</option>
+                                @foreach (var dept in departments)
+                                {
+                                    <option value="@dept.Id">@dept.Name (@dept.Code)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="GraduationYear" class="form-label fw-semibold small text-dark">Mezuniyet / Giriş Yılı</label>
+                            <input asp-for="GraduationYear" type="number" class="form-control rounded-3" placeholder="Örn: 2024" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CurrentCompany" class="form-label fw-semibold small text-dark">Çalıştığı Kurum / Şirket</label>
+                            <input asp-for="CurrentCompany" class="form-control rounded-3" placeholder="Örn: Trendyol, Aselsan veya Serbest" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CurrentTitle" class="form-label fw-semibold small text-dark">Unvan / Pozisyon</label>
+                            <input asp-for="CurrentTitle" class="form-control rounded-3" placeholder="Örn: Yazılım Mühendisi, Veri Analisti" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kayıt Butonu -->
+                <button type="submit" class="btn btn-konekto w-100 rounded-pill py-2 fw-bold mb-3 shadow">
+                    <i class="fa-solid fa-user-check me-2"></i> Hesabımı Oluştur ve Kaydol
+                </button>
+
+                <div class="text-center small text-muted">
+                    Zaten bir hesabınız var mı? 
+                    <a asp-action="Login" class="text-primary fw-bold text-decoration-none">Giriş Yapın</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const radioAlumni = document.getElementById('roleAlumni');
+        const radioStudent = document.getElementById('roleStudent');
+        const boxAlumni = document.getElementById('boxAlumni');
+        const boxStudent = document.getElementById('boxStudent');
+
+        function updateRoleSelection() {
+            if (radioAlumni.checked) {
+                boxAlumni.classList.add('selected');
+                boxStudent.classList.remove('selected');
+            } else {
+                boxStudent.classList.add('selected');
+                boxAlumni.classList.remove('selected');
+            }
+        }
+
+        radioAlumni.addEventListener('change', updateRoleSelection);
+        radioStudent.addEventListener('change', updateRoleSelection);
+        updateRoleSelection();
+    </script>
+}
